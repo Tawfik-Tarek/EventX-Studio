@@ -4,6 +4,9 @@ import arrow from "@/assets/Back Arrow.svg";
 import ticket from "@/assets/Ticket.svg";
 import seat from "@/assets/Flight Seat.svg";
 import cash from "@/assets/Cash.svg";
+import Field from "@/components/Field";
+import Metric from "@/components/Metric";
+import Legend from "@/components/Legend";
 
 const MOCK_EVENTS = [
   {
@@ -38,7 +41,6 @@ export default function EventDetails() {
 
   if (!event) return null;
 
-  // Generate seat map (simple grid 10x8) with statuses
   const totalGridSeats = 80; // 10 x 8
   const seatStatuses = Array.from({ length: totalGridSeats }, (_, i) => {
     if (i < event.paidSeats) return "paid";
@@ -194,48 +196,6 @@ export default function EventDetails() {
           className="w-8 h-8"
         />
       </button>
-    </div>
-  );
-}
-
-function Field({ label, value, textarea, full }) {
-  return (
-    <div className={`${full ? "col-span-2" : ""}`}>
-      <label className="block text-sm font-medium mb-1">{label}</label>
-      {textarea ? (
-        <div className="p-3 border rounded-md text-sm leading-snug max-h-40 overflow-y-auto whitespace-pre-line">
-          {value}
-        </div>
-      ) : (
-        <div className="px-3 py-2 border rounded-md text-sm font-medium bg-white">
-          {value}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Metric({ icon, label, value, color }) {
-  return (
-    <div className="border rounded-xl p-3 flex flex-col gap-1">
-      <div className="flex items-center gap-2">
-        <img
-          src={icon}
-          alt={label}
-          className="w-5 h-5"
-        />
-        <span className="text-xs text-gray-500">{label}</span>
-      </div>
-      <span className={`text-base font-semibold ${color}`}>{value}</span>
-    </div>
-  );
-}
-
-function Legend({ color, label }) {
-  return (
-    <div className="flex items-center gap-1">
-      <div className={`w-3 h-3 rounded-full ${color}`}></div>
-      <span className="text-xs text-gray-600">{label}</span>
     </div>
   );
 }

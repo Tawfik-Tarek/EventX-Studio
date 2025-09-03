@@ -9,7 +9,6 @@ import Layout from "./components/Layout";
 import EventDetails from "@/pages/EventDetails";
 import Events from "@/pages/Events";
 import {
-  ProtectedRoute,
   PublicRoute,
   RootRedirect,
   ProtectedLayout,
@@ -66,7 +65,6 @@ function App() {
               </Layout>
             }
           />
-
 
           <Route
             path="*"
