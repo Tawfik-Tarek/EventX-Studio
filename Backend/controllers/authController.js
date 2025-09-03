@@ -3,7 +3,16 @@ const User = require("../models/User");
 
 const register = async (req, res) => {
   try {
-    const { name, email, password, role = "user" } = req.body;
+    const {
+      name,
+      email,
+      password,
+      role = "user",
+      age,
+      gender,
+      interests,
+      location,
+    } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -14,7 +23,16 @@ const register = async (req, res) => {
     }
 
     // Create new user
-    const user = new User({ name, email, password, role });
+    const user = new User({
+      name,
+      email,
+      password,
+      role,
+      age,
+      gender,
+      interests,
+      location,
+    });
     await user.save();
 
     // Generate JWT token
@@ -30,6 +48,10 @@ const register = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        age: user.age,
+        gender: user.gender,
+        interests: user.interests,
+        location: user.location,
       },
     });
   } catch (error) {

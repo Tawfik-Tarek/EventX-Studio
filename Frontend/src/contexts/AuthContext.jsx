@@ -64,13 +64,27 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, password, role = "user") => {
+  const register = async (
+    name,
+    email,
+    password,
+    age,
+    gender,
+    location,
+    interests,
+    role = "user"
+  ) => {
+    const body = { name, email, password, role };
+    if (age !== undefined && age !== "") body.age = parseInt(age);
+    if (gender) body.gender = gender;
+    if (location) body.location = location;
+    if (interests && interests.length) body.interests = interests;
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ name, email, password, role }),
+      body: JSON.stringify(body),
     });
     const data = await response.json();
     if (response.ok) {

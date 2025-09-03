@@ -7,11 +7,16 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ButtonLoading } from "@/components/LoadingSpinner";
+import { TagsInput } from "@/components/ui/tags-input";
 
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [age, setAge] = useState("");
+  const [gender, setGender] = useState("");
+  const [location, setLocation] = useState("");
+  const [interests, setInterests] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
@@ -21,7 +26,15 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const result = await register(name, email, password);
+    const result = await register(
+      name,
+      email,
+      password,
+      age,
+      gender,
+      location,
+      interests
+    );
     setLoading(false);
     if (result.success) {
       navigate("/profile");
@@ -109,6 +122,70 @@ const Register = () => {
                 required
                 placeholder="Create a password"
                 className="h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label
+                htmlFor="age"
+                className="text-sm font-medium text-gray-700"
+              >
+                Age
+              </Label>
+              <Input
+                id="age"
+                type="number"
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                required
+                placeholder="Enter your age"
+                className="h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label
+                htmlFor="gender"
+                className="text-sm font-medium text-gray-700"
+              >
+                Gender
+              </Label>
+              <select
+                id="gender"
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                required
+                className="w-full h-11 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500 px-3"
+              >
+                <option value="">Select gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label
+                htmlFor="location"
+                className="text-sm font-medium text-gray-700"
+              >
+                Location
+              </Label>
+              <Input
+                id="location"
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                required
+                placeholder="Enter your location"
+                className="h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">
+                Interests
+              </Label>
+              <TagsInput
+                value={interests}
+                onChange={setInterests}
+                placeholder="Add interests..."
               />
             </div>
             {error && (

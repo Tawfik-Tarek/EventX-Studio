@@ -14,6 +14,10 @@ const eventSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
+  time: {
+    type: String,
+    required: true,
+  },
   venue: {
     type: String,
     required: true,
@@ -32,10 +36,6 @@ const eventSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 0,
-  },
-  category: {
-    type: String,
-    required: true,
   },
   image: {
     type: String,
