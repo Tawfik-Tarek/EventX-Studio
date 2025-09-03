@@ -32,7 +32,7 @@ const seedData = async () => {
       const user = new User({
         name: faker.person.fullName(),
         email: i === 0 ? "admin@example.com" : faker.internet.email(),
-        password: "password123", 
+        password: "password123",
         role: i === 0 ? "admin" : "user",
         age: faker.number.int({ min: 18, max: 65 }),
         gender: faker.helpers.arrayElement(["male", "female", "other"]),
@@ -42,9 +42,9 @@ const seedData = async () => {
         ),
         location: faker.location.city(),
       });
+      await user.save();
       users.push(user);
     }
-    await User.insertMany(users);
     console.log("40 users created successfully!");
 
     const events = [];
@@ -77,7 +77,7 @@ const seedData = async () => {
       const numTickets = faker.number.int({
         min: 10,
         max: event.totalSeats / 2,
-      }); 
+      });
       const bookedSeats = new Set();
 
       for (let i = 0; i < numTickets; i++) {
