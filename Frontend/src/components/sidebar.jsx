@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Calendar,
@@ -17,14 +18,17 @@ import {
 } from "lucide-react";
 
 import Logo from "../assets/logo.svg";
+import EventFormModal from "./EventFormModal";
 
 export default function Sidebar() {
+  const navigate = useNavigate();
   const [openSections, setOpenSections] = useState({
     "Main Navigation": true,
     "Support & Management": true,
     "Additional Features": true,
     "Account Management": true,
   });
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const toggleSection = (section) => {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
@@ -79,7 +83,10 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <button className="bg-[#282828] text-white px-4 py-2 rounded-md flex items-center gap-2.5 mx-4 my-2">
+      <button
+        onClick={() => setShowCreateModal(true)}
+        className="bg-[#282828] text-white px-4 py-2 cursor-pointer rounded-md flex items-center gap-2.5 mx-4 my-2"
+      >
         <PlusCircle
           size={36}
           className="bg-[#C1FF72]"
@@ -124,6 +131,16 @@ export default function Sidebar() {
           </div>
         ))}
       </nav>
+
+      <EventFormModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        event={null}
+        onSuccess={() => {
+          setShowCreateModal(false);
+          navigate("/events");
+        }}
+      />
     </aside>
   );
 }
