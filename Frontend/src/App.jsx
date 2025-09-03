@@ -12,6 +12,7 @@ import NotFound from "@/pages/NotFound";
 import "./App.css";
 import Layout from "./components/Layout";
 import { PageLoading } from "./components/LoadingSpinner";
+import EventCard from "./components/EventCard";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -28,6 +29,15 @@ const ProtectedLayout = ({ children }) => {
 };
 
 function App() {
+  const event = {
+    title: "Sample Event",
+    price: "$50",
+    totalSeats: 100,
+    availableSeats: 80,
+    venue: "Sample Venue",
+    date: "2025-09-10",
+    time: "7:00 PM",
+  };
   return (
     <AuthProvider>
       <Router>
@@ -56,7 +66,7 @@ function App() {
             path="/sidebar"
             element={
               <Layout>
-                <div>Sidebar Test</div>
+                <EventCard event={event} />
               </Layout>
             }
           />
