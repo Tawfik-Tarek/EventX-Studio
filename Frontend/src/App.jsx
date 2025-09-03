@@ -10,12 +10,21 @@ import Register from "@/pages/Register";
 import Profile from "@/pages/Profile";
 import NotFound from "@/pages/NotFound";
 import "./App.css";
-import Sidebar from "./components/sidebar";
+import Layout from "./components/Layout";
+import { PageLoading } from "./components/LoadingSpinner";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <PageLoading text="Loading your profile..." />;
   return user ? children : <Navigate to="/login" />;
+};
+
+const ProtectedLayout = ({ children }) => {
+  return (
+    <ProtectedRoute>
+      <Layout>{children}</Layout>
+    </ProtectedRoute>
+  );
 };
 
 function App() {
@@ -34,9 +43,9 @@ function App() {
           <Route
             path="/profile"
             element={
-              <ProtectedRoute>
+              <ProtectedLayout>
                 <Profile />
-              </ProtectedRoute>
+              </ProtectedLayout>
             }
           />
           <Route
@@ -46,9 +55,9 @@ function App() {
           <Route
             path="/sidebar"
             element={
-              <main className="border-[20px] border-black">
-                <Sidebar />
-              </main>
+              <Layout>
+                <div>Sidebar Test</div>
+              </Layout>
             }
           />
           <Route
