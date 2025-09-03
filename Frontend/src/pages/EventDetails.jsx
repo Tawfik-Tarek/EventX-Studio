@@ -7,41 +7,52 @@ import cash from "@/assets/Cash.svg";
 import Field from "@/components/Field";
 import Metric from "@/components/Metric";
 import Legend from "@/components/Legend";
-
-const MOCK_EVENTS = [
-  {
-    id: "1",
-    title: "Colombo Music Festival 2025",
-    venue: "Viharamahadevi Open Air Theater, Colombo",
-    description:
-      "Get ready for Sri Lanka's biggest music festival – the Colombo Music Festival 2025! 🎉🔥 This electrifying open-air concert will feature top international and local artists, bringing an unforgettable night of music, lights, and energy to the heart of Colombo! Join 10,000+ music lovers at the Viharamahadevi Open Air Theater for a night filled with live performances, immersive stage effects, and a festival atmosphere like no other! Whether you're into pop, rock, EDM, or reggae, this festival has something for every music enthusiast!",
-    price: 2500,
-    currency: "LKR",
-    totalSeats: 1200,
-    availableSeats: 523,
-    popularity: "High Popularity",
-    tags: ["Music", "Festival"],
-    expectedAttendance: 1000,
-    date: "April 12, 2025",
-    time: "6.00PM - 10.30PM",
-    paidSeats: 420,
-    reservedSeats: 257,
-  },
-];
+import { API_BASE_URL } from "@/config/api";
+import { useAuth } from "@/contexts/AuthContext";
+import formatDate from "@/lib/format-date";
 
 export default function EventDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const found = MOCK_EVENTS.find((e) => e.id === id) || MOCK_EVENTS[0];
-    setEvent(found);
+    const fetchEvent = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const res = await fetch(`${API_BASE_URL}/events/${id}`);
+        if (!res.ok) throw new Error(`Failed to fetch event (${res.status})`);
+        const data = await res.json();
+        console.log(data);
+
+        const formattedEvent = {
+          ...data,
+          currency: "LKR",
+          tags: data.tags || ["Event"],
+          popularity: "High Popularity",
+          expectedAttendance: data.totalSeats,
+          paidSeats: data.totalSeats - data.availableSeats,
+          reservedSeats: 0,
+        };
+        setEvent(formattedEvent);
+      } catch (e) {
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (id) fetchEvent();
   }, [id]);
 
-  if (!event) return null;
+  if (loading) return <div className="p-6">Loading event details...</div>;
+  if (error) return <div className="p-6 text-red-600">Error: {error}</div>;
+  if (!event) return <div className="p-6">Event not found.</div>;
 
-  const totalGridSeats = 80; // 10 x 8
+  const totalGridSeats = Math.min(80, event.totalSeats);
   const seatStatuses = Array.from({ length: totalGridSeats }, (_, i) => {
     if (i < event.paidSeats) return "paid";
     if (i < event.paidSeats + event.reservedSeats) return "reserved";
@@ -63,7 +74,7 @@ export default function EventDetails() {
             />
             <Field
               label="Event Date"
-              value={event.date}
+              value={formatDate(event.date)}
             />
             <Field
               label="Event Venue"
@@ -174,10 +185,12 @@ export default function EventDetails() {
             </div>
           </div>
 
-          <div className="flex gap-4 pt-4">
-            <button className="bg-[#D07D15] text-white font-semibold px-10 py-2 rounded-md">
-              EDIT
-            </button>
+          <div className="flex gap-4 pt-4 justify-end">
+            {user && user.role === "admin" && (
+              <button className="bg-[#D07D15] text-white font-semibold px-10 py-2 rounded-md">
+                EDIT
+              </button>
+            )}
             <button className="bg-[#0F5D13] text-white font-semibold px-6 py-2 rounded-md">
               Attendee Insights
             </button>

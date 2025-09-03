@@ -4,6 +4,7 @@ import ticket from "../assets/Ticket.svg";
 import arrow from "../assets/Back Arrow.svg";
 import { Separator } from "./ui/separator";
 import { useNavigate } from "react-router-dom";
+import formatDate from "@/lib/format-date";
 
 export default function EventCard({ event }) {
   const navigate = useNavigate();
@@ -80,15 +81,4 @@ export default function EventCard({ event }) {
       </button>
     </div>
   );
-}
-
-function formatDate(dateVal) {
-  if (!dateVal) return "";
-  try {
-    const d = new Date(dateVal);
-    if (isNaN(d.getTime())) return dateVal;
-    return d.toLocaleDateString();
-  } catch (_) {
-    return dateVal;
-  }
 }

@@ -64,6 +64,7 @@ const seedData = async () => {
         price: faker.number.int({ min: 10, max: 100 }),
         totalSeats,
         availableSeats: totalSeats,
+        date: faker.date.future(),
         status: "upcoming",
         createdBy: faker.helpers.arrayElement(users)._id,
       });
