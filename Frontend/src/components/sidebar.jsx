@@ -19,9 +19,11 @@ import {
 
 import Logo from "../assets/logo.svg";
 import EventFormModal from "./EventFormModal";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Sidebar() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [openSections, setOpenSections] = useState({
     "Main Navigation": true,
     "Support & Management": true,
@@ -32,6 +34,31 @@ export default function Sidebar() {
 
   const toggleSection = (section) => {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const routes = {
+    Dashboard: "/",
+    "Manage Events": "/events",
+    "Booking & Tickets": "/events",
+    "Attendee Insights": "/events",
+    "Analytics & Reports": "/analytics",
+    "Contact Support": "/support",
+    Notifications: "/notifications",
+    Settings: "/settings",
+    Marketing: "/marketing",
+    "Event Categories": "/categories",
+    "Manage Users": "/users",
+  };
+
+  const handleItemClick = (name) => {
+    if (name === "Logout") {
+      logout();
+    } else {
+      const path = routes[name];
+      if (path) {
+        navigate(path);
+      }
+    }
   };
 
   const sections = [
@@ -121,6 +148,7 @@ export default function Sidebar() {
                 {section.items.map((item) => (
                   <li
                     key={item.name}
+                    onClick={() => handleItemClick(item.name)}
                     className="flex items-center gap-2 text-sm text-gray-300 hover:text-white cursor-pointer py-1"
                   >
                     {item.icon} {item.name}
