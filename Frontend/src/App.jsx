@@ -8,11 +8,8 @@ import "./App.css";
 import Layout from "./components/Layout";
 import EventDetails from "@/pages/EventDetails";
 import Events from "@/pages/Events";
-import {
-  PublicRoute,
-  RootRedirect,
-  ProtectedLayout,
-} from "@/components/RouteGuards";
+import { PublicRoute, ProtectedLayout } from "@/components/RouteGuards";
+import Dashboard from "@/pages/Dashboard";
 
 function App() {
   return (
@@ -21,7 +18,11 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={<RootRedirect />}
+            element={
+              <ProtectedLayout>
+                <Dashboard />
+              </ProtectedLayout>
+            }
           />
 
           <Route
