@@ -3,11 +3,15 @@ const Event = require("../models/Event");
 const { generateQR } = require("../utils/qrGenerator");
 const jwt = require("jsonwebtoken");
 
-// Helper to ensure seat is valid and available (simple numeric model)
+// Helper to ensure seat is valid and available using seatMap
 const validateSeat = (event, seatNumber) => {
-  if (seatNumber < 1 || seatNumber > event.totalSeats) {
+  if (seatNumber < 1 || seatNumber > event.totalSeats)
     return "Seat number out of range";
-  }
+  if (!event.seatMap || event.seatMap.length !== event.totalSeats)
+    return "Seat map not initialized";
+  const seatObj = event.seatMap[seatNumber - 1];
+  if (!seatObj) return "Seat not found";
+  if (seatObj.status !== "available") return "Seat not available";
   return null;
 };
 
@@ -24,14 +28,17 @@ const bookTicket = async (req, res) => {
     const seatError = validateSeat(event, seatNumber);
     if (seatError) return res.status(400).json({ message: seatError });
 
-    const existingTicket = await Ticket.findOne({ eventId, seatNumber });
-    if (existingTicket)
-      return res.status(400).json({ message: "Seat already booked" });
-
-    // Atomically decrement availableSeats if >0
+    // Atomically mark seat as booked if still available and decrement availableSeats
     const updated = await Event.findOneAndUpdate(
-      { _id: eventId, availableSeats: { $gt: 0 } },
-      { $inc: { availableSeats: -1 } },
+      {
+        _id: eventId,
+        availableSeats: { $gt: 0 },
+        [`seatMap.${seatNumber - 1}.status`]: "available",
+      },
+      {
+        $set: { [`seatMap.${seatNumber - 1}.status`]: "booked" },
+        $inc: { availableSeats: -1 },
+      },
       { new: true }
     );
     if (!updated)
@@ -72,13 +79,16 @@ const checkoutTicket = async (req, res) => {
     const seatError = validateSeat(event, seatNumber);
     if (seatError) return res.status(400).json({ message: seatError });
 
-    const existingTicket = await Ticket.findOne({ eventId, seatNumber });
-    if (existingTicket)
-      return res.status(400).json({ message: "Seat already booked" });
-
     const updated = await Event.findOneAndUpdate(
-      { _id: eventId, availableSeats: { $gt: 0 } },
-      { $inc: { availableSeats: -1 } },
+      {
+        _id: eventId,
+        availableSeats: { $gt: 0 },
+        [`seatMap.${seatNumber - 1}.status`]: "available",
+      },
+      {
+        $set: { [`seatMap.${seatNumber - 1}.status`]: "booked" },
+        $inc: { availableSeats: -1 },
+      },
       { new: true }
     );
     if (!updated)
@@ -143,10 +153,17 @@ const cancelTicket = async (req, res) => {
     ticket.status = "cancelled";
     await ticket.save();
 
-    // Update event available seats
-    const event = await Event.findById(ticket.eventId);
-    event.availableSeats += 1;
-    await event.save();
+    // Free seat in seatMap and increment availableSeats
+    await Event.findOneAndUpdate(
+      {
+        _id: ticket.eventId,
+        [`seatMap.${ticket.seatNumber - 1}.status`]: "booked",
+      },
+      {
+        $set: { [`seatMap.${ticket.seatNumber - 1}.status`]: "available" },
+        $inc: { availableSeats: 1 },
+      }
+    );
 
     res.json({ message: "Ticket cancelled successfully" });
   } catch (error) {

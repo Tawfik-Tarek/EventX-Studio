@@ -27,8 +27,17 @@ const eventCreateSchema = Joi.object({
   venue: Joi.string().required(),
   price: Joi.number().min(0).required(),
   totalSeats: Joi.number().integer().min(1).required(),
-  category: Joi.string().allow("", null),
-  image: Joi.string().uri().allow("", null),
+  seatMap: Joi.array()
+    .items(
+      Joi.object({
+        number: Joi.number().integer().min(1).required(),
+        status: Joi.string()
+          .valid("available", "booked", "blocked")
+          .default("available"),
+      })
+    )
+    .max(5000)
+    .optional(),
 });
 
 const eventUpdateSchema = Joi.object({
@@ -39,9 +48,13 @@ const eventUpdateSchema = Joi.object({
   venue: Joi.string(),
   price: Joi.number().min(0),
   totalSeats: Joi.number().integer().min(1),
-  category: Joi.string().allow("", null),
-  image: Joi.string().uri().allow("", null),
   status: Joi.string().valid("upcoming", "active", "closed"),
+  seatMap: Joi.array().items(
+    Joi.object({
+      number: Joi.number().integer().min(1).required(),
+      status: Joi.string().valid("available", "booked", "blocked"),
+    })
+  ),
 }).min(1);
 
 // Event list query schema (search/filter/pagination)
@@ -50,7 +63,6 @@ const eventQuerySchema = Joi.object({
   limit: Joi.number().integer().min(1).max(100).default(10),
   search: Joi.string().allow(""),
   status: Joi.string().valid("upcoming", "active", "closed"),
-  category: Joi.string(),
   minPrice: Joi.number().min(0),
   maxPrice: Joi.number().min(0),
   fromDate: Joi.date().iso(),

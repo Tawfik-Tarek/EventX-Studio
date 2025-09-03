@@ -5,7 +5,7 @@ A comprehensive backend API for EventX Studio - an event management system built
 ## 🚀 Features
 
 - **Authentication & Authorization**: JWT-based authentication with role-based access control
-- **Event Management**: Full CRUD operations for events with seat allocation
+- **Event Management**: Full CRUD operations for events with dynamic seat maps
 - **Ticket Booking**: Seat selection, QR code generation, and booking management
 - **Analytics Dashboard**: Revenue tracking, attendee demographics, and event insights
 - **Real-time Updates**: Automatic seat availability updates
@@ -152,8 +152,9 @@ Authorization: Bearer <your-jwt-token>
   price: Number (required, min: 0),
   totalSeats: Number (required, min: 1),
   availableSeats: Number (required, min: 0),
-  category: String (required),
-  image: String, // URL to event image
+  seatMap: [
+    { number: Number, status: 'available' | 'booked' | 'blocked' }
+  ],
   status: String (enum: ['upcoming', 'active', 'closed']),
   createdBy: ObjectId (ref: 'User'),
   createdAt: Date
@@ -166,7 +167,7 @@ Authorization: Bearer <your-jwt-token>
 {
   eventId: ObjectId (ref: 'Event', required),
   userId: ObjectId (ref: 'User', required),
-  seatNumber: String (required),
+  seatNumber: Number (required),
   qrCode: String (required), // Base64 encoded QR code
   status: String (enum: ['booked', 'used', 'cancelled']),
   bookingDate: Date,
@@ -186,34 +187,39 @@ Authorization: Bearer <your-jwt-token>
 
 ### Event Routes (`/api/events`)
 
-| Method | Endpoint | Description      | Access          |
-| ------ | -------- | ---------------- | --------------- |
-| GET    | `/`      | Get all events   | Public          |
-| GET    | `/:id`   | Get event by ID  | Public          |
-| POST   | `/`      | Create new event | Admin           |
-| PUT    | `/:id`   | Update event     | Authenticated\* |
-| DELETE | `/:id`   | Delete event     | Authenticated\* |
+| Method | Endpoint | Description                                                          | Access          |
+| ------ | -------- | -------------------------------------------------------------------- | --------------- |
+| GET    | `/`      | Get events (filters: search, status, price, date; pagination & sort) | Public          |
+| GET    | `/:id`   | Get event by ID                                                      | Public          |
+| POST   | `/`      | Create new event                                                     | Admin           |
+| PUT    | `/:id`   | Update event                                                         | Authenticated\* |
+| DELETE | `/:id`   | Delete event                                                         | Authenticated\* |
 
 \*Users can only update/delete their own events, Admins can modify any event
 
 ### Ticket Routes (`/api/tickets`)
 
-| Method | Endpoint          | Description         | Access          |
-| ------ | ----------------- | ------------------- | --------------- |
-| POST   | `/book`           | Book a ticket       | Authenticated   |
-| GET    | `/my-tickets`     | Get user's tickets  | Authenticated   |
-| GET    | `/event/:eventId` | Get event tickets   | Admin           |
-| PUT    | `/:id/cancel`     | Cancel ticket       | Authenticated\* |
-| PUT    | `/:id/use`        | Mark ticket as used | Admin           |
+| Method | Endpoint          | Description                             | Access          |
+| ------ | ----------------- | --------------------------------------- | --------------- |
+| POST   | `/book`           | Book a ticket (atomic seat reservation) | Authenticated   |
+| POST   | `/checkout`       | Simulated payment + booking             | Authenticated   |
+| GET    | `/my-tickets`     | Get user's tickets                      | Authenticated   |
+| GET    | `/event/:eventId` | Get event tickets                       | Admin           |
+| PUT    | `/:id/cancel`     | Cancel ticket                           | Authenticated\* |
+| PUT    | `/:id/use`        | Mark ticket as used (manual)            | Admin           |
+| POST   | `/validate-qr`    | Scan/validate QR & mark used            | Admin           |
 
 \*Users can only cancel their own tickets
 
 ### Analytics Routes (`/api/analytics`)
 
-| Method | Endpoint        | Description               | Access |
-| ------ | --------------- | ------------------------- | ------ |
-| GET    | `/dashboard`    | Get dashboard stats       | Admin  |
-| GET    | `/demographics` | Get attendee demographics | Admin  |
+| Method | Endpoint                | Description                       | Access |
+| ------ | ----------------------- | --------------------------------- | ------ |
+| GET    | `/dashboard`            | Get dashboard stats               | Admin  |
+| GET    | `/demographics`         | Get attendee demographics         | Admin  |
+| GET    | `/per-event`            | Per-event sales / occupancy stats | Admin  |
+| GET    | `/revenue`              | Revenue over time (day/month)     | Admin  |
+| GET    | `/export/per-event.csv` | CSV export of per-event stats     | Admin  |
 
 ## 📋 API Usage Examples
 
@@ -261,8 +267,6 @@ Content-Type: application/json
   "venue": "Convention Center",
   "price": 99.99,
   "totalSeats": 500,
-  "category": "Technology",
-  "image": "https://example.com/event-image.jpg"
 }
 ```
 
@@ -275,8 +279,49 @@ Content-Type: application/json
 
 {
   "eventId": "64f1a2b3c4d5e6f7g8h9i0j1",
-  "seatNumber": "A-15"
+  "seatNumber": 15
 }
+```
+
+### Simulated Checkout
+
+```bash
+POST /api/tickets/checkout
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+
+{
+  "eventId": "64f1a2b3c4d5e6f7g8h9i0j1",
+  "seatNumber": 15,
+  "cardLast4": "4242",
+  "amount": 99.99
+}
+```
+
+### Validate QR (Scan)
+
+```bash
+POST /api/tickets/validate-qr
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+
+{
+  "qr": "<raw-jwt-token-from-qr>"
+}
+```
+
+### Revenue Over Time
+
+```bash
+GET /api/analytics/revenue?from=2025-01-01&to=2025-12-31&granularity=month
+Authorization: Bearer <jwt-token>
+```
+
+### Export Per-Event CSV
+
+```bash
+GET /api/analytics/export/per-event.csv
+Authorization: Bearer <jwt-token>
 ```
 
 ### Get Dashboard Analytics (Admin Only)
@@ -302,7 +347,9 @@ The analytics system provides:
 - **Dashboard Metrics**: Total events, tickets sold, revenue, user count
 - **Demographic Data**: Age groups, gender distribution, interests, locations
 - **Event Insights**: Recent events, upcoming events, booking trends
-- **Revenue Tracking**: Total and per-event revenue calculations
+- **Revenue Tracking**: Total, per-event, and time-series revenue calculations
+- **Occupancy Metrics**: Seat utilization percentage per event
+- **CSV Export**: Downloadable event performance stats
 
 ## 🛠 Development
 
@@ -338,7 +385,6 @@ The API includes comprehensive error handling:
 - [ ] Set up proper CORS origins
 - [ ] Enable HTTPS
 - [ ] Set up monitoring and logging
-
 
 ## 📝 License
 

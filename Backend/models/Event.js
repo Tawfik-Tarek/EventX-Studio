@@ -9,8 +9,16 @@ const eventSchema = new mongoose.Schema({
   price: { type: Number, required: true, min: 0 },
   totalSeats: { type: Number, required: true, min: 1 },
   availableSeats: { type: Number, required: true, min: 0 },
-  category: { type: String, trim: true },
-  image: { type: String }, // URL or path
+  seatMap: [
+    {
+      number: { type: Number, required: true },
+      status: {
+        type: String,
+        enum: ["available", "booked", "blocked"],
+        default: "available",
+      },
+    },
+  ],
   status: {
     type: String,
     enum: ["upcoming", "active", "closed"],
@@ -28,11 +36,17 @@ const eventSchema = new mongoose.Schema({
 eventSchema.index({ date: 1, status: 1 });
 eventSchema.index({ createdBy: 1 });
 
-// Auto-update "status" based on date (lightweight; can be optimized or moved to cron for scale)
 eventSchema.pre("save", function (next) {
   const now = new Date();
   if (this.date < now && this.status === "upcoming") {
-    this.status = "active"; // simplistic transition; real logic could consider end time
+    this.status = "active";
+  }
+
+  if (this.isNew && (!this.seatMap || this.seatMap.length === 0)) {
+    this.seatMap = Array.from({ length: this.totalSeats }, (_, i) => ({
+      number: i + 1,
+      status: "available",
+    }));
   }
   next();
 });

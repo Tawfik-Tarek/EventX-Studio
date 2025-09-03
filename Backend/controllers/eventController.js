@@ -7,7 +7,6 @@ const getAllEvents = async (req, res) => {
       limit,
       search,
       status,
-      category,
       minPrice,
       maxPrice,
       fromDate,
@@ -17,7 +16,6 @@ const getAllEvents = async (req, res) => {
 
     const query = {};
     if (status) query.status = status;
-    if (category) query.category = category;
     if (minPrice || maxPrice) {
       query.price = {};
       if (minPrice) query.price.$gte = Number(minPrice);
@@ -87,17 +85,8 @@ const getEventById = async (req, res) => {
 
 const createEvent = async (req, res) => {
   try {
-    const {
-      title,
-      description,
-      date,
-      time,
-      venue,
-      price,
-      totalSeats,
-      category,
-      image,
-    } = req.body;
+    const { title, description, date, time, venue, price, totalSeats } =
+      req.body;
 
     const event = new Event({
       title,
@@ -108,8 +97,6 @@ const createEvent = async (req, res) => {
       price,
       totalSeats,
       availableSeats: totalSeats,
-      category,
-      image,
       createdBy: req.user._id,
     });
 
