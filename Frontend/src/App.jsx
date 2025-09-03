@@ -9,6 +9,7 @@ import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Profile from "@/pages/Profile";
 import "./App.css";
+import Sidebar from "./components/sidebar";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -40,6 +41,14 @@ function App() {
           <Route
             path="/"
             element={<Navigate to="/login" />}
+          />
+          <Route
+            path="/sidebar"
+            element={
+              <main className="border-[20px] border-black">
+                <Sidebar />
+              </main>
+            }
           />
         </Routes>
       </Router>
