@@ -47,6 +47,30 @@ eventSchema.pre("save", function (next) {
       number: i + 1,
       status: "available",
     }));
+  } else if (
+    !this.isNew &&
+    this.seatMap &&
+    this.seatMap.length !== this.totalSeats
+  ) {
+    const currentLength = this.seatMap.length;
+    const newLength = this.totalSeats;
+    if (newLength > currentLength) {
+      for (let i = currentLength; i < newLength; i++) {
+        this.seatMap.push({
+          number: i + 1,
+          status: "available",
+        });
+      }
+    } else if (newLength < currentLength) {
+      while (this.seatMap.length > newLength) {
+        const lastSeat = this.seatMap[this.seatMap.length - 1];
+        if (lastSeat.status === "available") {
+          this.seatMap.pop();
+        } else {
+          break;
+        }
+      }
+    }
   }
   next();
 });

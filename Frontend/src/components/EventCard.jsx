@@ -13,9 +13,13 @@ export default function EventCard({ event }) {
   return (
     <div
       onClick={goToDetails}
-      className="bg-white w-[400px] h-[240px] rounded-[20px] stroke-1 shadow-md text-black px-4 py-5 relative cursor-pointer hover:shadow-lg transition-shadow"
+      className="bg-white w-[342px] h-[240px] rounded-[20px] stroke-1 shadow-md text-black px-4 py-5 relative cursor-pointer hover:shadow-lg transition-shadow"
     >
-      <h3 className="text-lg font-bold">{event.title.length >= 30 ? event.title.slice(0, 30) + "..." : event.title}</h3>
+      <h3 className="text-lg font-bold">
+        {event.title.length >= 30
+          ? event.title.slice(0, 30) + "..."
+          : event.title}
+      </h3>
       <div className="flex justify-between mt-4 mb-3">
         <div className="flex items-center">
           <img
@@ -23,9 +27,7 @@ export default function EventCard({ event }) {
             alt="Cash"
             className="w-5 h-5"
           />
-          <span className="ml-1 text-[#0F5D13]">
-            {event.price}
-          </span>
+          <span className="ml-1 text-[#0F5D13]">{event.price}</span>
         </div>
         <div className="flex items-center">
           <img
@@ -46,7 +48,6 @@ export default function EventCard({ event }) {
             typeof event.totalSeats === "number"
               ? event.totalSeats - event.availableSeats
               : "-"}
-              
           </span>
         </div>
       </div>

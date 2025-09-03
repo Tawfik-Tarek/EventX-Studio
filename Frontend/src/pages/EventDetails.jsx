@@ -7,6 +7,7 @@ import cash from "@/assets/Cash.svg";
 import Field from "@/components/Field";
 import Metric from "@/components/Metric";
 import Legend from "@/components/Legend";
+import EventFormModal from "@/components/EventFormModal";
 import { API_BASE_URL } from "@/config/api";
 import { useAuth } from "@/contexts/AuthContext";
 import formatDate from "@/lib/format-date";
@@ -18,6 +19,7 @@ export default function EventDetails() {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -187,7 +189,10 @@ export default function EventDetails() {
 
           <div className="flex gap-4 pt-4 justify-end">
             {user && user.role === "admin" && (
-              <button className="bg-[#D07D15] text-white font-semibold px-10 py-2 rounded-md">
+              <button
+                onClick={() => setShowEditModal(true)}
+                className="bg-[#D07D15] text-white font-semibold px-10 py-2 rounded-md"
+              >
                 EDIT
               </button>
             )}
@@ -209,6 +214,24 @@ export default function EventDetails() {
           className="w-8 h-8"
         />
       </button>
+      <EventFormModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        event={event}
+        onSuccess={(updatedEvent) => {
+          const formattedEvent = {
+            ...updatedEvent,
+            currency: "LKR",
+            tags: updatedEvent.tags || ["Event"],
+            popularity: "High Popularity",
+            expectedAttendance: updatedEvent.totalSeats,
+            paidSeats: updatedEvent.totalSeats - updatedEvent.availableSeats,
+            reservedSeats: 0,
+          };
+          setEvent(formattedEvent);
+          setShowEditModal(false);
+        }}
+      />
     </div>
   );
 }

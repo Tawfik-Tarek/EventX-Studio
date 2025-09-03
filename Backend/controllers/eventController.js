@@ -101,7 +101,11 @@ const createEvent = async (req, res) => {
     });
 
     await event.save();
-    res.status(201).json(event);
+    const createdEvent = await Event.findById(event._id).populate(
+      "createdBy",
+      "name"
+    );
+    res.status(201).json(createdEvent);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -124,12 +128,28 @@ const updateEvent = async (req, res) => {
     }
 
     const updates = req.body;
+
+    if (updates.totalSeats !== undefined) {
+      const newTotalSeats = Number(updates.totalSeats);
+      const bookedSeats = event.totalSeats - event.availableSeats;
+      if (newTotalSeats < bookedSeats) {
+        return res.status(400).json({
+          message: `Cannot reduce total seats below ${bookedSeats} booked seats`,
+        });
+      }
+      updates.availableSeats = newTotalSeats - bookedSeats;
+    }
+
     Object.keys(updates).forEach((key) => {
       event[key] = updates[key];
     });
 
     await event.save();
-    res.json(event);
+    const updatedEvent = await Event.findById(req.params.id).populate(
+      "createdBy",
+      "name"
+    );
+    res.json(updatedEvent);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import EventCard from "@/components/EventCard";
+import EventFormModal from "@/components/EventFormModal";
 import { API_BASE_URL } from "@/config/api";
 import { PageLoading } from "@/components/LoadingSpinner";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Events() {
+  const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [fetching, setFetching] = useState(false);
@@ -18,6 +21,7 @@ export default function Events() {
   const [toDate, setToDate] = useState("");
   const [sort, setSort] = useState("date");
   const [showFilters, setShowFilters] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const abortRef = useRef(null);
   const mountedRef = useRef(false);
   const filterTimeoutRef = useRef(null);
@@ -107,11 +111,17 @@ export default function Events() {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold">Events</h1>
-          <p className="text-xs text-gray-500 mt-1">
-            Browse and search events
-          </p>
+          <p className="text-xs text-gray-500 mt-1">Browse and search events</p>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
+          {user && user.role === "admin" && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
+            >
+              Create Event
+            </button>
+          )}
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="px-3 py-1 text-sm rounded-md border hover:bg-gray-50 whitespace-nowrap"
@@ -207,10 +217,10 @@ export default function Events() {
           {error}
         </div>
       )}
-      {events.length === 0 ? (
+      {events && events.length === 0 ? (
         <div className="text-gray-500 text-sm">No events found.</div>
       ) : (
-        <div className="gap-[35px] flex flex-wrap">
+        <div className="gap-[35px] flex flex-wrap mx-auto">
           {events.map((ev) => (
             <EventCard
               key={ev.id || ev._id}
@@ -240,6 +250,15 @@ export default function Events() {
           </button>
         </div>
       )}
+      <EventFormModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        event={null}
+        onSuccess={(newEvent) => {
+          setEvents([newEvent, ...events]);
+          setShowCreateModal(false);
+        }}
+      />
     </div>
   );
 }
