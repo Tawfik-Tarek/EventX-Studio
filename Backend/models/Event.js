@@ -37,9 +37,6 @@ const eventSchema = new mongoose.Schema({
     required: true,
     min: 0,
   },
-  image: {
-    type: String,
-  },
   status: {
     type: String,
     enum: ["upcoming", "active", "closed"],
