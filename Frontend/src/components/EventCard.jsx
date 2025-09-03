@@ -7,7 +7,8 @@ import { useNavigate } from "react-router-dom";
 
 export default function EventCard({ event }) {
   const navigate = useNavigate();
-  const goToDetails = () => navigate(`/events/${event.id || 1}`);
+  const eventId = event.id || event._id || 1;
+  const goToDetails = () => navigate(`/events/${eventId}`);
   return (
     <div
       onClick={goToDetails}
@@ -21,7 +22,9 @@ export default function EventCard({ event }) {
             alt="Cash"
             className="w-5 h-5"
           />
-          <span className="ml-1 text-[#0F5D13]">{event.price}</span>
+          <span className="ml-1 text-[#0F5D13]">
+            {event.price}
+          </span>
         </div>
         <div className="flex items-center">
           <img
@@ -38,7 +41,11 @@ export default function EventCard({ event }) {
             className="w-5 h-5"
           />
           <span className="ml-1 text-[#8B2CF5]">
-            {event.totalSeats - event.availableSeats}
+            {typeof event.availableSeats === "number" &&
+            typeof event.totalSeats === "number"
+              ? event.totalSeats - event.availableSeats
+              : "-"}
+              
           </span>
         </div>
       </div>
@@ -48,7 +55,10 @@ export default function EventCard({ event }) {
           Venue : <span className="text-black font-medium">{event.venue}</span>
         </span>
         <span className="text-[#666666]">
-          Date : <span className="text-black font-medium">{event.date}</span>
+          Date :{" "}
+          <span className="text-black font-medium">
+            {formatDate(event.date)}
+          </span>
         </span>
         <span className="text-[#666666]">
           Time : <span className="text-black font-medium">{event.time}</span>
@@ -70,4 +80,15 @@ export default function EventCard({ event }) {
       </button>
     </div>
   );
+}
+
+function formatDate(dateVal) {
+  if (!dateVal) return "";
+  try {
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return dateVal; // already formatted
+    return d.toLocaleDateString();
+  } catch (_) {
+    return dateVal;
+  }
 }

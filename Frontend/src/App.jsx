@@ -12,8 +12,8 @@ import NotFound from "@/pages/NotFound";
 import "./App.css";
 import Layout from "./components/Layout";
 import { PageLoading } from "./components/LoadingSpinner";
-import EventCard from "./components/EventCard";
 import EventDetails from "@/pages/EventDetails";
+import Events from "@/pages/Events";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -65,10 +65,10 @@ function App() {
             element={<Navigate to="/login" />}
           />
           <Route
-            path="/sidebar"
+            path="/events"
             element={
               <Layout>
-                <EventCard event={event} />
+                <Events />
               </Layout>
             }
           />
