@@ -5,17 +5,34 @@ import { PageLoading } from "@/components/LoadingSpinner";
 
 export default function Events() {
   const [events, setEvents] = useState([]);
-  const [initialLoading, setInitialLoading] = useState(true); 
+  const [initialLoading, setInitialLoading] = useState(true);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [sort, setSort] = useState("date");
+  const [showFilters, setShowFilters] = useState(false);
   const abortRef = useRef(null);
   const mountedRef = useRef(false);
+  const filterTimeoutRef = useRef(null);
   const DEBOUNCE_MS = 400;
 
-  const fetchEvents = async ({ page: p = page, search: s = search } = {}) => {
+  const fetchEvents = async ({
+    page: p = page,
+    search: s = search,
+    status: st = status,
+    minPrice: minP = minPrice,
+    maxPrice: maxP = maxPrice,
+    fromDate: fromD = fromDate,
+    toDate: toD = toDate,
+    sort: so = sort,
+  } = {}) => {
     if (abortRef.current) abortRef.current.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -26,6 +43,12 @@ export default function Events() {
       if (!isFirst) setError("");
       const params = new URLSearchParams({ page: p, limit: 12 });
       if (s.trim()) params.append("search", s.trim());
+      if (st) params.append("status", st);
+      if (minP) params.append("minPrice", minP);
+      if (maxP) params.append("maxPrice", maxP);
+      if (fromD) params.append("fromDate", fromD);
+      if (toD) params.append("toDate", toD);
+      if (so && so !== "date") params.append("sort", so);
       const res = await fetch(`${API_BASE_URL}/events?${params.toString()}`, {
         signal: controller.signal,
       });
@@ -44,18 +67,31 @@ export default function Events() {
     }
   };
 
+  const applyFilters = () => {
+    if (filterTimeoutRef.current) clearTimeout(filterTimeoutRef.current);
+
+    filterTimeoutRef.current = setTimeout(() => {
+      fetchEvents({ page: 1 });
+    }, DEBOUNCE_MS);
+  };
 
   useEffect(() => {
     fetchEvents();
-  }, []); 
+  }, []);
 
   useEffect(() => {
-    if (!mountedRef.current) return; 
+    if (!mountedRef.current) return;
     const handle = setTimeout(() => {
       fetchEvents({ page: 1, search });
     }, DEBOUNCE_MS);
     return () => clearTimeout(handle);
-  }, [search]); 
+  }, [search]);
+
+  useEffect(() => {
+    if (!mountedRef.current) return;
+
+    applyFilters();
+  }, [status, minPrice, maxPrice, fromDate, toDate, sort]);
 
   const handleSearchChange = (e) => setSearch(e.target.value);
 
@@ -76,6 +112,12 @@ export default function Events() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="px-3 py-1 text-sm rounded-md border hover:bg-gray-50 whitespace-nowrap"
+          >
+            {showFilters ? "Hide Filters" : "Show Filters"}
+          </button>
           <div className="relative w-full sm:w-72">
             <input
               type="text"
@@ -95,6 +137,74 @@ export default function Events() {
           </div>
         </div>
       </div>
+      {showFilters && (
+        <div className="flex flex-wrap gap-4 mb-4">
+          <div className="flex flex-col">
+            <label className="text-sm font-medium">Status</label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="border rounded-md px-3 py-2 text-sm"
+            >
+              <option value="">All</option>
+              <option value="upcoming">Upcoming</option>
+              <option value="active">Active</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+          <div className="flex flex-col">
+            <label className="text-sm font-medium">Min Price</label>
+            <input
+              type="number"
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              className="border rounded-md px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-sm font-medium">Max Price</label>
+            <input
+              type="number"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              className="border rounded-md px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-sm font-medium">From Date</label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="border rounded-md px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-sm font-medium">To Date</label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="border rounded-md px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-sm font-medium">Sort</label>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="border rounded-md px-3 py-2 text-sm"
+            >
+              <option value="date">Date Asc</option>
+              <option value="-date">Date Desc</option>
+              <option value="price">Price Asc</option>
+              <option value="-price">Price Desc</option>
+              <option value="createdAt">Created Asc</option>
+              <option value="-createdAt">Created Desc</option>
+            </select>
+          </div>
+        </div>
+      )}
       {error && (
         <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 px-3 py-2 rounded-md">
           {error}
