@@ -20,12 +20,12 @@ const connectDB = async () => {
 
 const seedData = async () => {
   try {
-    console.log("🌱 Starting data seeding...");
+    console.log("Starting data seeding...");
 
     await Event.deleteMany({});
     await User.deleteMany({});
     await Ticket.deleteMany({});
-    console.log("🗑️  All data deleted successfully!");
+    console.log("All data deleted successfully!");
 
     const users = [];
     for (let i = 0; i < 40; i++) {
@@ -45,7 +45,7 @@ const seedData = async () => {
       users.push(user);
     }
     await User.insertMany(users);
-    console.log("👥 40 users created successfully!");
+    console.log("40 users created successfully!");
 
     const events = [];
     for (let i = 0; i < 50; i++) {
@@ -70,7 +70,7 @@ const seedData = async () => {
       events.push(event);
     }
     await Event.insertMany(events);
-    console.log("🎉 50 events created successfully!");
+    console.log("50 events created successfully!");
 
     const tickets = [];
     for (const event of events) {
@@ -103,7 +103,7 @@ const seedData = async () => {
       }
     }
     await Ticket.insertMany(tickets);
-    console.log(`🎫 ${tickets.length} tickets created successfully!`);
+    console.log(`${tickets.length} tickets created successfully!`);
 
     for (const event of events) {
       const eventTickets = tickets.filter(

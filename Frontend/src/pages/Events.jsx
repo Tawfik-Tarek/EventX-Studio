@@ -108,7 +108,7 @@ export default function Events() {
         <div>
           <h1 className="text-2xl font-bold">Events</h1>
           <p className="text-xs text-gray-500 mt-1">
-            Browse and search upcoming events
+            Browse and search events
           </p>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
@@ -126,9 +126,6 @@ export default function Events() {
               onChange={handleSearchChange}
               className="w-full border rounded-md pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-              🔍
-            </span>
             {fetching && (
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-500 animate-pulse">
                 updating

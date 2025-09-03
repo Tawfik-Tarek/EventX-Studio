@@ -12,9 +12,9 @@ export default function EventCard({ event }) {
   return (
     <div
       onClick={goToDetails}
-      className="bg-white w-[342px] h-[240px] rounded-[20px] stroke-1 shadow-md text-black px-4 py-5 relative cursor-pointer hover:shadow-lg transition-shadow"
+      className="bg-white w-[400px] h-[240px] rounded-[20px] stroke-1 shadow-md text-black px-4 py-5 relative cursor-pointer hover:shadow-lg transition-shadow"
     >
-      <h3 className="text-lg font-bold">{event.title}</h3>
+      <h3 className="text-lg font-bold">{event.title.length >= 30 ? event.title.slice(0, 30) + "..." : event.title}</h3>
       <div className="flex justify-between mt-4 mb-3">
         <div className="flex items-center">
           <img
@@ -86,7 +86,7 @@ function formatDate(dateVal) {
   if (!dateVal) return "";
   try {
     const d = new Date(dateVal);
-    if (isNaN(d.getTime())) return dateVal; // already formatted
+    if (isNaN(d.getTime())) return dateVal;
     return d.toLocaleDateString();
   } catch (_) {
     return dateVal;
