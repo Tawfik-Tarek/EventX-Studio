@@ -10,6 +10,7 @@ import EventDetails from "@/pages/EventDetails";
 import Events from "@/pages/Events";
 import { PublicRoute, ProtectedLayout } from "@/components/RouteGuards";
 import Dashboard from "@/pages/Dashboard";
+import AttendeeInsights from "@/pages/AttendeeInsights";
 
 function App() {
   return (
@@ -47,6 +48,15 @@ function App() {
               <ProtectedLayout>
                 <Profile />
               </ProtectedLayout>
+            }
+          />
+
+          <Route
+            path="/attendees"
+            element={
+              <Layout>
+                <AttendeeInsights />
+              </Layout>
             }
           />
 

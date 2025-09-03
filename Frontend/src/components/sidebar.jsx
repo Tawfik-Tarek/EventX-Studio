@@ -40,7 +40,7 @@ export default function Sidebar() {
     Dashboard: "/",
     "Manage Events": "/events",
     "Booking & Tickets": "/events",
-    "Attendee Insights": "/events",
+    "Attendee Insights": "/attendees",
     "Analytics & Reports": "/analytics",
     "Contact Support": "/support",
     Notifications: "/notifications",
