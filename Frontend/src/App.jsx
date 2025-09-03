@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Profile from "@/pages/Profile";
+import NotFound from "@/pages/NotFound";
 import "./App.css";
 import Sidebar from "./components/sidebar";
 
@@ -49,6 +50,10 @@ function App() {
                 <Sidebar />
               </main>
             }
+          />
+          <Route
+            path="*"
+            element={<NotFound />}
           />
         </Routes>
       </Router>
