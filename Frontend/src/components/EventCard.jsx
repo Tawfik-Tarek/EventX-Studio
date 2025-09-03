@@ -3,10 +3,16 @@ import seat from "../assets/Flight Seat.svg";
 import ticket from "../assets/Ticket.svg";
 import arrow from "../assets/Back Arrow.svg";
 import { Separator } from "./ui/separator";
+import { useNavigate } from "react-router-dom";
 
 export default function EventCard({ event }) {
+  const navigate = useNavigate();
+  const goToDetails = () => navigate(`/events/${event.id || 1}`);
   return (
-    <div className="bg-white w-[342px] h-[240px] rounded-[20px] stroke-1 shadow-md text-black px-4 py-5 relative">
+    <div
+      onClick={goToDetails}
+      className="bg-white w-[342px] h-[240px] rounded-[20px] stroke-1 shadow-md text-black px-4 py-5 relative cursor-pointer hover:shadow-lg transition-shadow"
+    >
       <h3 className="text-lg font-bold">{event.title}</h3>
       <div className="flex justify-between mt-4 mb-3">
         <div className="flex items-center">
@@ -48,7 +54,14 @@ export default function EventCard({ event }) {
           Time : <span className="text-black font-medium">{event.time}</span>
         </span>
       </div>
-      <button className="absolute bottom-4 right-4 cursor-pointer">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          goToDetails();
+        }}
+        className="absolute bottom-4 right-4 cursor-pointer"
+      >
         <img
           src={arrow}
           alt="Back Arrow"

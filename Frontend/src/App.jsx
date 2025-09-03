@@ -13,6 +13,7 @@ import "./App.css";
 import Layout from "./components/Layout";
 import { PageLoading } from "./components/LoadingSpinner";
 import EventCard from "./components/EventCard";
+import EventDetails from "@/pages/EventDetails";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -30,13 +31,14 @@ const ProtectedLayout = ({ children }) => {
 
 function App() {
   const event = {
-    title: "Sample Event",
-    price: "$50",
-    totalSeats: 100,
-    availableSeats: 80,
-    venue: "Sample Venue",
-    date: "2025-09-10",
-    time: "7:00 PM",
+    id: "1",
+    title: "Colombo Music Festival 2025",
+    price: "2500LKR",
+    totalSeats: 1200,
+    availableSeats: 523,
+    venue: "Viharamahadevi Open Air Theater, Colombo",
+    date: "April 12, 2025",
+    time: "6.00PM - 10.30PM",
   };
   return (
     <AuthProvider>
@@ -67,6 +69,14 @@ function App() {
             element={
               <Layout>
                 <EventCard event={event} />
+              </Layout>
+            }
+          />
+          <Route
+            path="/events/:id"
+            element={
+              <Layout>
+                <EventDetails />
               </Layout>
             }
           />

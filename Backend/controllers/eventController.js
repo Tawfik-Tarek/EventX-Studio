@@ -1,9 +1,70 @@
 const Event = require("../models/Event");
 
-const getAllEvents = async (_, res) => {
+const getAllEvents = async (req, res) => {
   try {
-    const events = await Event.find().populate("createdBy", "name");
-    res.json(events);
+    const {
+      page,
+      limit,
+      search,
+      status,
+      category,
+      minPrice,
+      maxPrice,
+      fromDate,
+      toDate,
+      sort,
+    } = req.query;
+
+    const query = {};
+    if (status) query.status = status;
+    if (category) query.category = category;
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+    if (fromDate || toDate) {
+      query.date = {};
+      if (fromDate) query.date.$gte = new Date(fromDate);
+      if (toDate) query.date.$lte = new Date(toDate);
+    }
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { venue: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+    const skip = (pageNum - 1) * limitNum;
+
+    const sortMap = {
+      date: { date: 1 },
+      "-date": { date: -1 },
+      price: { price: 1 },
+      "-price": { price: -1 },
+      createdAt: { createdAt: 1 },
+      "-createdAt": { createdAt: -1 },
+    };
+    const sortObj = sortMap[sort] || { date: 1 };
+
+    const [events, total] = await Promise.all([
+      Event.find(query)
+        .populate("createdBy", "name")
+        .sort(sortObj)
+        .skip(skip)
+        .limit(limitNum),
+      Event.countDocuments(query),
+    ]);
+
+    res.json({
+      data: events,
+      page: pageNum,
+      total,
+      totalPages: Math.ceil(total / limitNum),
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -30,6 +91,7 @@ const createEvent = async (req, res) => {
       title,
       description,
       date,
+      time,
       venue,
       price,
       totalSeats,
@@ -41,6 +103,7 @@ const createEvent = async (req, res) => {
       title,
       description,
       date,
+      time,
       venue,
       price,
       totalSeats,

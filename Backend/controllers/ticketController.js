@@ -1,49 +1,102 @@
 const Ticket = require("../models/Ticket");
 const Event = require("../models/Event");
 const { generateQR } = require("../utils/qrGenerator");
+const jwt = require("jsonwebtoken");
+
+// Helper to ensure seat is valid and available (simple numeric model)
+const validateSeat = (event, seatNumber) => {
+  if (seatNumber < 1 || seatNumber > event.totalSeats) {
+    return "Seat number out of range";
+  }
+  return null;
+};
 
 const bookTicket = async (req, res) => {
   try {
-    const { eventId, seatNumber } = req.body;
+    const { eventId } = req.body;
+    const seatNumber = Number(req.body.seatNumber);
 
-    // Check if event exists and has available seats
     const event = await Event.findById(eventId);
-    if (!event) {
-      return res.status(404).json({ message: "Event not found" });
-    }
-
-    if (event.availableSeats <= 0) {
+    if (!event) return res.status(404).json({ message: "Event not found" });
+    if (event.availableSeats <= 0)
       return res.status(400).json({ message: "No seats available" });
-    }
 
-    // Check if seat is already booked
+    const seatError = validateSeat(event, seatNumber);
+    if (seatError) return res.status(400).json({ message: seatError });
+
     const existingTicket = await Ticket.findOne({ eventId, seatNumber });
-    if (existingTicket) {
+    if (existingTicket)
       return res.status(400).json({ message: "Seat already booked" });
-    }
 
-    // Generate QR code data
-    const qrData = `Event: ${event.title}, Seat: ${seatNumber}, User: ${req.user._id}`;
-    const qrCode = await generateQR(qrData);
+    // Atomically decrement availableSeats if >0
+    const updated = await Event.findOneAndUpdate(
+      { _id: eventId, availableSeats: { $gt: 0 } },
+      { $inc: { availableSeats: -1 } },
+      { new: true }
+    );
+    if (!updated)
+      return res.status(400).json({ message: "Seat reservation failed" });
 
-    // Create ticket
-    const ticket = new Ticket({
+    const qrPayload = { e: eventId, s: seatNumber, u: req.user._id };
+    const qrToken = jwt.sign(qrPayload, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+    const qrCode = await generateQR(qrToken);
+
+    const ticket = await Ticket.create({
       eventId,
       userId: req.user._id,
       seatNumber,
       qrCode,
     });
 
-    await ticket.save();
+    res.status(201).json({ message: "Ticket booked successfully", ticket });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
 
-    // Update event available seats
-    event.availableSeats -= 1;
-    await event.save();
+// Simulated payment + booking (checkout)
+const checkoutTicket = async (req, res) => {
+  try {
+    const { eventId } = req.body;
+    const seatNumber = Number(req.body.seatNumber);
+    const amount = Number(req.body.amount);
 
-    res.status(201).json({
-      message: "Ticket booked successfully",
-      ticket,
+    const event = await Event.findById(eventId);
+    if (!event) return res.status(404).json({ message: "Event not found" });
+    if (amount !== event.price)
+      return res.status(400).json({ message: "Amount mismatch" });
+
+    // We can reuse book logic; for clarity replicate minimal steps
+    const seatError = validateSeat(event, seatNumber);
+    if (seatError) return res.status(400).json({ message: seatError });
+
+    const existingTicket = await Ticket.findOne({ eventId, seatNumber });
+    if (existingTicket)
+      return res.status(400).json({ message: "Seat already booked" });
+
+    const updated = await Event.findOneAndUpdate(
+      { _id: eventId, availableSeats: { $gt: 0 } },
+      { $inc: { availableSeats: -1 } },
+      { new: true }
+    );
+    if (!updated)
+      return res.status(400).json({ message: "Seat reservation failed" });
+
+    const qrPayload = { e: eventId, s: seatNumber, u: req.user._id };
+    const qrToken = jwt.sign(qrPayload, process.env.JWT_SECRET, {
+      expiresIn: "7d",
     });
+    const qrCode = await generateQR(qrToken);
+
+    const ticket = await Ticket.create({
+      eventId,
+      userId: req.user._id,
+      seatNumber,
+      qrCode,
+    });
+    res.status(201).json({ message: "Checkout successful", ticket });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -104,20 +157,37 @@ const cancelTicket = async (req, res) => {
 const useTicket = async (req, res) => {
   try {
     const ticket = await Ticket.findById(req.params.id);
-
-    if (!ticket) {
-      return res.status(404).json({ message: "Ticket not found" });
-    }
-
-    if (ticket.status !== "booked") {
+    if (!ticket) return res.status(404).json({ message: "Ticket not found" });
+    if (ticket.status !== "booked")
       return res.status(400).json({ message: "Ticket cannot be used" });
-    }
-
     ticket.status = "used";
     ticket.usedDate = new Date();
     await ticket.save();
-
     res.json({ message: "Ticket used successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Validate QR code token and mark ticket used (admin scan)
+const validateQRAndUse = async (req, res) => {
+  try {
+    const { qr } = req.body; // qr token (not dataURL)
+    let payload;
+    try {
+      payload = jwt.verify(qr, process.env.JWT_SECRET);
+    } catch (e) {
+      return res.status(400).json({ message: "Invalid or expired QR" });
+    }
+    const { e: eventId, s: seatNumber, u: userId } = payload;
+    const ticket = await Ticket.findOne({ eventId, seatNumber, userId });
+    if (!ticket) return res.status(404).json({ message: "Ticket not found" });
+    if (ticket.status !== "booked")
+      return res.status(400).json({ message: "Ticket already processed" });
+    ticket.status = "used";
+    ticket.usedDate = new Date();
+    await ticket.save();
+    res.json({ message: "QR validated", ticket });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -125,8 +195,10 @@ const useTicket = async (req, res) => {
 
 module.exports = {
   bookTicket,
+  checkoutTicket,
   getUserTickets,
   getEventTickets,
   cancelTicket,
   useTicket,
+  validateQRAndUse,
 };
