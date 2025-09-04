@@ -1,4 +1,5 @@
 const Event = require("../models/Event");
+const { createNotification } = require("./notificationController");
 
 const getAllEvents = async (req, res) => {
   try {
@@ -105,6 +106,16 @@ const createEvent = async (req, res) => {
       "createdBy",
       "name"
     );
+    // Broadcast notification for new event
+    createNotification({
+      user: null,
+      title: "New Event Created",
+      message: `${createdEvent.title} scheduled on ${new Date(
+        createdEvent.date
+      ).toLocaleDateString()}`,
+      type: "event",
+      data: { eventId: createdEvent._id },
+    }).catch(() => {});
     res.status(201).json(createdEvent);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
@@ -149,6 +160,13 @@ const updateEvent = async (req, res) => {
       "createdBy",
       "name"
     );
+    createNotification({
+      user: null,
+      title: "Event Updated",
+      message: `${updatedEvent.title} details were updated`,
+      type: "event",
+      data: { eventId: updatedEvent._id },
+    }).catch(() => {});
     res.json(updatedEvent);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
@@ -172,6 +190,13 @@ const deleteEvent = async (req, res) => {
     }
 
     await Event.findByIdAndDelete(req.params.id);
+    createNotification({
+      user: null,
+      title: "Event Deleted",
+      message: `${event.title} has been removed`,
+      type: "event",
+      data: { eventId: event._id },
+    }).catch(() => {});
     res.json({ message: "Event deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
