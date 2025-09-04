@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { UserCircle2, Users, MapPin, Star, BarChart3 } from "lucide-react";
 import {
   Chart as ChartJS,
@@ -24,8 +25,9 @@ ChartJS.register(
   ChartLegend
 );
 
-export default function AttendeeInsights() {
+export default function AttendeeInsights({ singleEvent = false }) {
   const { user } = useAuth();
+  const { id: eventId } = useParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -38,9 +40,11 @@ export default function AttendeeInsights() {
     setError("");
     try {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const res = await fetch(`${API_BASE_URL}/analytics/demographics`, {
-        headers,
-      });
+      const endpoint =
+        singleEvent && eventId
+          ? `${API_BASE_URL}/analytics/demographics/${eventId}`
+          : `${API_BASE_URL}/analytics/demographics`;
+      const res = await fetch(endpoint, { headers });
       if (!res.ok) throw new Error(`Fetch failed (${res.status})`);
       const json = await res.json();
       setData(json);
@@ -53,7 +57,7 @@ export default function AttendeeInsights() {
 
   useEffect(() => {
     if (user && user.role === "admin") fetchData();
-  }, [user]);
+  }, [user, singleEvent, eventId]);
 
   if (user && user.role !== "admin") {
     return (
@@ -272,18 +276,26 @@ export default function AttendeeInsights() {
 
   const cardBase = "bg-white rounded-2xl p-5 shadow-sm border flex flex-col";
 
+  const pageTitle = singleEvent
+    ? `Attendee Insights – ${data?.event?.title || "Event"}`
+    : "All Attendee Insights";
   return (
     <div className="space-y-8">
       {/* Header */}
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            All Attendee Insights
-          </h1>
-          <p className="text-xs text-gray-500 mt-1 max-w-md">
-            Overview of attendee demographics & engagement to guide marketing,
-            personalization and capacity planning.
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">{pageTitle}</h1>
+          {singleEvent ? (
+            <p className="text-xs text-gray-500 mt-1 max-w-md">
+              Demographic breakdown for this specific event to support targeted
+              marketing and operational decisions.
+            </p>
+          ) : (
+            <p className="text-xs text-gray-500 mt-1 max-w-md">
+              Overview of attendee demographics & engagement to guide marketing,
+              personalization and capacity planning.
+            </p>
+          )}
         </div>
         <button
           onClick={fetchData}
@@ -299,7 +311,67 @@ export default function AttendeeInsights() {
         </div>
       )}
 
-      {/* Metrics */}
+      {/* Event summary (single event) */}
+      {singleEvent && data?.event && (
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <Metric
+            label="Tickets Sold"
+            value={data.event.ticketsSold}
+            icon={
+              <BarChart3
+                size={18}
+                className="text-blue-600"
+              />
+            }
+            color="text-blue-600"
+          />
+          <Metric
+            label="Revenue"
+            value={data.event.revenue}
+            icon={
+              <BarChart3
+                size={18}
+                className="text-green-600"
+              />
+            }
+            color="text-green-600"
+          />
+          <Metric
+            label="Occupancy"
+            value={`${data.event.occupancy}%`}
+            icon={
+              <BarChart3
+                size={18}
+                className="text-purple-600"
+              />
+            }
+            color="text-purple-600"
+          />
+          <Metric
+            label="Total Seats"
+            value={data.event.totalSeats}
+            icon={
+              <Users
+                size={18}
+                className="text-yellow-600"
+              />
+            }
+            color="text-yellow-600"
+          />
+          <Metric
+            label="Available"
+            value={data.event.availableSeats}
+            icon={
+              <Users
+                size={18}
+                className="text-red-600"
+              />
+            }
+            color="text-red-600"
+          />
+        </section>
+      )}
+
       <section className="grid gap-4 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
         {metrics.map((m) => (
           <Metric
@@ -312,9 +384,7 @@ export default function AttendeeInsights() {
         ))}
       </section>
 
-      {/* Charts */}
       <section className="grid gap-6 xl:grid-cols-12">
-        {/* Locations - wide */}
         <div className={`${cardBase} xl:col-span-7 relative overflow-hidden`}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold text-sm">
@@ -336,7 +406,6 @@ export default function AttendeeInsights() {
           </div>
         </div>
 
-        {/* Right column pies */}
         <div className="xl:col-span-5 space-y-6">
           <div className={`${cardBase} relative overflow-hidden`}>
             <h2 className="font-semibold mb-3 text-sm">Attendee Interests</h2>

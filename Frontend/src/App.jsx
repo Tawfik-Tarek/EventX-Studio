@@ -59,6 +59,14 @@ function App() {
               </Layout>
             }
           />
+          <Route
+            path="/events/:id/attendees"
+            element={
+              <Layout>
+                <AttendeeInsights singleEvent />
+              </Layout>
+            }
+          />
 
           <Route
             path="/events"

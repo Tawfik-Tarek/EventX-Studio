@@ -196,7 +196,10 @@ export default function EventDetails() {
                 EDIT
               </button>
             )}
-            <button className="bg-[#0F5D13] text-white font-semibold px-6 py-2 rounded-md">
+            <button
+              onClick={() => navigate(`/events/${event._id}/attendees`)}
+              className="bg-[#0F5D13] text-white font-semibold px-6 py-2 rounded-md"
+            >
               Attendee Insights
             </button>
           </div>

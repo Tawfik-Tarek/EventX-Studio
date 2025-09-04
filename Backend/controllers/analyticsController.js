@@ -118,7 +118,90 @@ const getAttendeeDemographics = async (_, res) => {
   }
 };
 
-// Per-event aggregation (tickets sold, revenue, remaining seats, occupancy)
+const getEventAttendeeDemographics = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    if (!eventId) {
+      return res.status(400).json({ message: "eventId param required" });
+    }
+
+    const usersWithTickets = await Ticket.distinct("userId", {
+      eventId,
+      status: { $in: ["booked", "used"] },
+    });
+
+    const attendees = await User.find({ _id: { $in: usersWithTickets } });
+
+    const ageGroups = {
+      "18-25": 0,
+      "26-35": 0,
+      "36-45": 0,
+      "46-55": 0,
+      "56+": 0,
+    };
+    const genderDistribution = { male: 0, female: 0, other: 0 };
+    const interestsCount = {};
+    const locationsCount = {};
+
+    attendees.forEach((user) => {
+      if (user.age) {
+        if (user.age >= 18 && user.age <= 25) ageGroups["18-25"]++;
+        else if (user.age >= 26 && user.age <= 35) ageGroups["26-35"]++;
+        else if (user.age >= 36 && user.age <= 45) ageGroups["36-45"]++;
+        else if (user.age >= 46 && user.age <= 55) ageGroups["46-55"]++;
+        else if (user.age >= 56) ageGroups["56+"]++;
+      }
+
+      if (user.gender) genderDistribution[user.gender]++;
+      if (user.interests) {
+        user.interests.forEach((interest) => {
+          interestsCount[interest] = (interestsCount[interest] || 0) + 1;
+        });
+      }
+      if (user.location) {
+        locationsCount[user.location] =
+          (locationsCount[user.location] || 0) + 1;
+      }
+    });
+
+    const event = await Event.findById(eventId).select(
+      "title date venue price totalSeats availableSeats status"
+    );
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    const ticketsSold = await Ticket.countDocuments({
+      eventId,
+      status: { $in: ["booked", "used"] },
+    });
+
+    res.json({
+      event: {
+        id: event._id,
+        title: event.title,
+        date: event.date,
+        venue: event.venue,
+        price: event.price,
+        totalSeats: event.totalSeats,
+        availableSeats: event.availableSeats,
+        status: event.status,
+        ticketsSold,
+        revenue: ticketsSold * event.price,
+        occupancy: Number(
+          ((ticketsSold / (event.totalSeats || 1)) * 100).toFixed(2)
+        ),
+      },
+      ageGroups,
+      genderDistribution,
+      interests: interestsCount,
+      locations: locationsCount,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 const getPerEventStats = async (req, res) => {
   try {
     const events = await Event.find();
@@ -158,7 +241,6 @@ const getPerEventStats = async (req, res) => {
   }
 };
 
-// Revenue over time
 const getRevenueOverTime = async (req, res) => {
   try {
     const { from, to, granularity } = req.query;
@@ -198,7 +280,6 @@ const getRevenueOverTime = async (req, res) => {
   }
 };
 
-// CSV export of per-event stats
 const exportPerEventCSV = async (req, res) => {
   try {
     const events = await Event.find();
@@ -246,6 +327,7 @@ const exportPerEventCSV = async (req, res) => {
 module.exports = {
   getDashboardStats,
   getAttendeeDemographics,
+  getEventAttendeeDemographics,
   getPerEventStats,
   getRevenueOverTime,
   exportPerEventCSV,
