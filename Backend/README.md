@@ -199,15 +199,11 @@ Authorization: Bearer <your-jwt-token>
 
 ### Ticket Routes (`/api/tickets`)
 
-| Method | Endpoint          | Description                             | Access          |
-| ------ | ----------------- | --------------------------------------- | --------------- |
-| POST   | `/book`           | Book a ticket (atomic seat reservation) | Authenticated   |
-| POST   | `/checkout`       | Simulated payment + booking             | Authenticated   |
-| GET    | `/my-tickets`     | Get user's tickets                      | Authenticated   |
-| GET    | `/event/:eventId` | Get event tickets                       | Admin           |
-| PUT    | `/:id/cancel`     | Cancel ticket                           | Authenticated\* |
-| PUT    | `/:id/use`        | Mark ticket as used (manual)            | Admin           |
-| POST   | `/validate-qr`    | Scan/validate QR & mark used            | Admin           |
+| Method | Endpoint      | Description                 | Access          |
+| ------ | ------------- | --------------------------- | --------------- |
+| POST   | `/checkout`   | Simulated payment + booking | Authenticated   |
+| GET    | `/my-tickets` | Get user's tickets          | Authenticated   |
+| PUT    | `/:id/cancel` | Cancel ticket               | Authenticated\* |
 
 \*Users can only cancel their own tickets
 
@@ -270,19 +266,6 @@ Content-Type: application/json
 }
 ```
 
-### Book Ticket
-
-```bash
-POST /api/tickets/book
-Authorization: Bearer <jwt-token>
-Content-Type: application/json
-
-{
-  "eventId": "64f1a2b3c4d5e6f7g8h9i0j1",
-  "seatNumber": 15
-}
-```
-
 ### Simulated Checkout
 
 ```bash
@@ -295,18 +278,6 @@ Content-Type: application/json
   "seatNumber": 15,
   "cardLast4": "4242",
   "amount": 99.99
-}
-```
-
-### Validate QR (Scan)
-
-```bash
-POST /api/tickets/validate-qr
-Authorization: Bearer <jwt-token>
-Content-Type: application/json
-
-{
-  "qr": "<raw-jwt-token-from-qr>"
 }
 ```
 

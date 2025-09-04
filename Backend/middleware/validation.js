@@ -73,11 +73,6 @@ const eventQuerySchema = Joi.object({
 });
 
 // Ticket booking / checkout schemas
-const ticketBookSchema = Joi.object({
-  eventId: Joi.string().hex().length(24).required(),
-  seatNumber: Joi.number().integer().min(1).required(),
-});
-
 const ticketCheckoutSchema = Joi.object({
   eventId: Joi.string().hex().length(24).required(),
   seatNumber: Joi.number().integer().min(1).required(),
@@ -88,16 +83,10 @@ const ticketCheckoutSchema = Joi.object({
   amount: Joi.number().min(0).required(),
 });
 
-const ticketQRValidateSchema = Joi.object({
-  qr: Joi.string().required(),
-});
-
 module.exports = {
   validate,
   eventCreateSchema,
   eventUpdateSchema,
   eventQuerySchema,
-  ticketBookSchema,
   ticketCheckoutSchema,
-  ticketQRValidateSchema,
 };
