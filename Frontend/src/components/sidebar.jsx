@@ -46,6 +46,7 @@ export default function Sidebar() {
     "Analytics & Reports": "/analytics",
     "Contact Support": "/support",
     Notifications: "/notifications",
+    "Admin Notifications": "/admin/notifications",
     Settings: "/settings",
     Marketing: "/marketing",
     "Event Categories": "/categories",
@@ -85,6 +86,9 @@ export default function Sidebar() {
       items: [
         { name: "Contact Support", icon: <Headphones size={18} /> },
         { name: "Notifications", icon: <Bell size={18} /> },
+        ...(isAdmin
+          ? [{ name: "Admin Notifications", icon: <Megaphone size={18} /> }]
+          : []),
         { name: "Settings", icon: <Settings size={18} /> },
       ],
     },

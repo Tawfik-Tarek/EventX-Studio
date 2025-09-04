@@ -14,6 +14,7 @@ import Dashboard from "@/pages/Dashboard";
 import NotificationsPage from "@/pages/Notifications";
 import AttendeeInsights from "@/pages/AttendeeInsights";
 import MyTickets from "@/pages/MyTickets";
+import AdminNotifications from "@/pages/AdminNotifications";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -71,6 +72,14 @@ function App() {
                 element={
                   <ProtectedLayout>
                     <NotificationsPage />
+                  </ProtectedLayout>
+                }
+              />
+              <Route
+                path="/admin/notifications"
+                element={
+                  <ProtectedLayout>
+                    <AdminNotifications />
                   </ProtectedLayout>
                 }
               />
