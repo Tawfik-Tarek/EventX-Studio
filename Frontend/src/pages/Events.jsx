@@ -225,6 +225,9 @@ export default function Events() {
             <EventCard
               key={ev.id || ev._id}
               event={ev}
+              onDelete={(deletedId) => {
+                setEvents(events.filter((e) => (e.id || e._id) !== deletedId));
+              }}
             />
           ))}
         </div>
