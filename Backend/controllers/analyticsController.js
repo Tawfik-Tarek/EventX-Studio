@@ -4,13 +4,10 @@ const User = require("../models/User");
 
 const getDashboardStats = async (_, res) => {
   try {
-    // Total events
     const totalEvents = await Event.countDocuments();
 
-    // Total tickets sold
     const totalTicketsSold = await Ticket.countDocuments({ status: "booked" });
 
-    // Total revenue
     const tickets = await Ticket.find({ status: "booked" }).populate(
       "eventId",
       "price"
@@ -20,16 +17,13 @@ const getDashboardStats = async (_, res) => {
       0
     );
 
-    // Total users
     const totalUsers = await User.countDocuments({ role: "user" });
 
-    // Recent events
     const recentEvents = await Event.find()
       .populate("createdBy", "name")
       .sort({ createdAt: -1 })
       .limit(5);
 
-    // Upcoming events
     const upcomingEvents = await Event.find({
       date: { $gte: new Date() },
       status: { $in: ["upcoming", "active"] },
@@ -52,11 +46,9 @@ const getDashboardStats = async (_, res) => {
 
 const getAttendeeDemographics = async (_, res) => {
   try {
-    // Get users with tickets
     const usersWithTickets = await Ticket.distinct("userId");
     const attendees = await User.find({ _id: { $in: usersWithTickets } });
 
-    // Age groups
     const ageGroups = {
       "18-25": 0,
       "26-35": 0,
@@ -65,21 +57,17 @@ const getAttendeeDemographics = async (_, res) => {
       "56+": 0,
     };
 
-    // Gender distribution
     const genderDistribution = {
       male: 0,
       female: 0,
       other: 0,
     };
 
-    // Interests
     const interestsCount = {};
 
-    // Locations
     const locationsCount = {};
 
     attendees.forEach((user) => {
-      // Age groups
       if (user.age) {
         if (user.age >= 18 && user.age <= 25) ageGroups["18-25"]++;
         else if (user.age >= 26 && user.age <= 35) ageGroups["26-35"]++;
@@ -88,12 +76,10 @@ const getAttendeeDemographics = async (_, res) => {
         else if (user.age >= 56) ageGroups["56+"]++;
       }
 
-      // Gender
       if (user.gender) {
         genderDistribution[user.gender]++;
       }
 
-      // Interests
       if (user.interests) {
         user.interests.forEach((interest) => {
           interestsCount[interest] = (interestsCount[interest] || 0) + 1;

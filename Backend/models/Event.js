@@ -32,7 +32,6 @@ const eventSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-// Indexes for faster querying / analytics
 eventSchema.index({ date: 1, status: 1 });
 eventSchema.index({ createdBy: 1 });
 

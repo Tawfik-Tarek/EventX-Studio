@@ -15,6 +15,7 @@ import {
   LogOut,
   PlusCircle,
   ChevronDown,
+  User,
 } from "lucide-react";
 
 import Logo from "../assets/logo.svg";
@@ -51,6 +52,7 @@ export default function Sidebar() {
     Marketing: "/marketing",
     "Event Categories": "/categories",
     "Manage Users": "/users",
+    Profile: "/profile",
   };
 
   const handleItemClick = (name) => {
@@ -106,6 +108,7 @@ export default function Sidebar() {
     {
       title: "Account Management",
       items: [
+        { name: "Profile", icon: <User size={18} /> },
         ...(isAdmin
           ? [{ name: "Manage Users", icon: <UserCog size={18} /> }]
           : []),

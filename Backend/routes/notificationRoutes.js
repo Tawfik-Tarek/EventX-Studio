@@ -13,7 +13,6 @@ const {
 
 const router = express.Router();
 
-// Authenticated user routes
 router.get("/", auth, listNotifications);
 router.get("/unread", auth, getUnreadCount);
 router.put("/mark-all/read", auth, markAllRead);
@@ -35,7 +34,6 @@ router.get("/stream", async (req, res, next) => {
   }
 });
 
-// Admin create broadcast/targeted
 router.post("/", auth, adminAuth, create);
 
 module.exports = router;

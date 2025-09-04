@@ -281,7 +281,6 @@ export default function AttendeeInsights({ singleEvent = false }) {
     : "All Attendee Insights";
   return (
     <div className="space-y-8">
-      {/* Header */}
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{pageTitle}</h1>
@@ -311,7 +310,6 @@ export default function AttendeeInsights({ singleEvent = false }) {
         </div>
       )}
 
-      {/* Event summary (single event) */}
       {singleEvent && data?.event && (
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <Metric

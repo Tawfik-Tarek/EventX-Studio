@@ -4,7 +4,6 @@ const { generateQR } = require("../utils/qrGenerator");
 const { createNotification } = require("./notificationController");
 const jwt = require("jsonwebtoken");
 
-// Helper to ensure seat is valid and available using seatMap
 const validateSeat = (event, seatNumber) => {
   if (seatNumber < 1 || seatNumber > event.totalSeats)
     return "Seat number out of range";
@@ -82,53 +81,7 @@ const getUserTickets = async (req, res) => {
   }
 };
 
-const cancelTicket = async (req, res) => {
-  try {
-    const ticket = await Ticket.findById(req.params.id).populate(
-      "eventId",
-      "title"
-    );
-
-    if (!ticket) {
-      return res.status(404).json({ message: "Ticket not found" });
-    }
-
-    // Check if user owns the ticket
-    if (ticket.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Not authorized" });
-    }
-
-    // Update ticket status
-    ticket.status = "cancelled";
-    await ticket.save();
-
-    // Free seat in seatMap and increment availableSeats
-    await Event.findOneAndUpdate(
-      {
-        _id: ticket.eventId,
-        [`seatMap.${ticket.seatNumber - 1}.status`]: "booked",
-      },
-      {
-        $set: { [`seatMap.${ticket.seatNumber - 1}.status`]: "available" },
-        $inc: { availableSeats: 1 },
-      }
-    );
-
-    res.json({ message: "Ticket cancelled successfully" });
-    createNotification({
-      user: req.user._id,
-      title: "Ticket Cancelled",
-      message: `Your ticket (seat ${ticket.seatNumber}) for event "${ticket.eventId.title}" was cancelled`,
-      type: "ticket",
-      data: { ticketId: ticket._id, eventId: ticket.eventId },
-    }).catch(() => {});
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-};
-
 module.exports = {
   checkoutTicket,
   getUserTickets,
-  cancelTicket,
 };

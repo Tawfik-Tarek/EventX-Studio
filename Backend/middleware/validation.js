@@ -1,6 +1,5 @@
 const Joi = require("joi");
 
-// Helper to wrap validation schemas
 const validate =
   (schema, property = "body") =>
   (req, res, next) => {
@@ -57,7 +56,6 @@ const eventUpdateSchema = Joi.object({
   ),
 }).min(1);
 
-// Event list query schema (search/filter/pagination)
 const eventQuerySchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(10),
@@ -72,11 +70,9 @@ const eventQuerySchema = Joi.object({
     .default("date"),
 });
 
-// Ticket booking / checkout schemas
 const ticketCheckoutSchema = Joi.object({
   eventId: Joi.string().hex().length(24).required(),
   seatNumber: Joi.number().integer().min(1).required(),
-  // pretend payment fields
   cardLast4: Joi.string()
     .pattern(/^\d{4}$/)
     .required(),

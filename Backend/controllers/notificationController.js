@@ -1,10 +1,8 @@
 const Notification = require("../models/Notification");
 const EventEmitter = require("events");
 
-// Shared emitter for in-memory fan-out; for multi-instance deployments use Redis pub/sub etc.
 const notificationEmitter = new EventEmitter();
 
-// Create helper (internal)
 async function createNotification({
   user,
   title,
@@ -16,13 +14,11 @@ async function createNotification({
   console.log(
     `Notification created: ${title} for user: ${user || "broadcast"}`
   );
-  // Emit event for SSE listeners (per user + broadcast channel)
   notificationEmitter.emit("notify", { notification: doc });
   console.log("Notification event emitted");
   return doc;
 }
 
-// List notifications for current user (includes broadcast ones)
 async function listNotifications(req, res) {
   try {
     const { page = 1, limit = 20, unread } = req.query;
@@ -37,7 +33,6 @@ async function listNotifications(req, res) {
       .skip((page - 1) * limit)
       .limit(Number(limit));
     const total = await Notification.countDocuments(filter);
-    // Add isRead to each notification
     const notificationsWithRead = notifications.map((n) => ({
       ...n.toObject(),
       isRead: n.readBy.includes(req.user._id),
@@ -71,7 +66,6 @@ async function markRead(req, res) {
 
 async function markAllRead(req, res) {
   try {
-    // Mark all notifications the user can see as read
     await Notification.updateMany(
       {
         $or: [{ user: req.user._id }, { user: null }],
@@ -85,7 +79,6 @@ async function markAllRead(req, res) {
   }
 }
 
-// Get total unread count for user
 async function getUnreadCount(req, res) {
   try {
     const count = await Notification.countDocuments({
@@ -113,9 +106,7 @@ async function create(req, res) {
   }
 }
 
-// SSE stream
 function stream(req, res) {
-  // Recommended headers for SSE
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
@@ -124,12 +115,10 @@ function stream(req, res) {
   const userId = req.user._id.toString();
 
   const onNotify = ({ notification }) => {
-    // Send if notification targeted to this user or broadcast
     if (!notification.user || notification.user.toString() === userId) {
       console.log(
         `Sending notification to user ${userId}: ${notification.title}`
       );
-      // Add isRead property for consistency with listNotifications
       const notificationWithRead = {
         ...notification.toObject(),
         isRead: false, // New notifications are always unread
@@ -141,7 +130,6 @@ function stream(req, res) {
 
   notificationEmitter.on("notify", onNotify);
 
-  // Heartbeat every 25s to keep connection alive
   const heartbeat = setInterval(() => {
     res.write(":keep-alive\n\n");
   }, 25000);

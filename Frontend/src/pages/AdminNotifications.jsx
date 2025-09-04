@@ -60,7 +60,6 @@ export default function AdminNotifications() {
       setType("info");
       setTarget("broadcast");
       setUserId("");
-      // Refresh notifications to show the new one (for the admin themselves if it's broadcast)
       setTimeout(() => refreshNotifications(), 1000);
     } catch (err) {
       setError(err.message);

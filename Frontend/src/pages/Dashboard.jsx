@@ -220,7 +220,6 @@ export default function Dashboard() {
         </div>
       )}
       <div className="grid xl:grid-cols-3 gap-6">
-        {/* Net Sales + line chart */}
         <div className="xl:col-span-2 bg-white rounded-2xl p-5 shadow-sm border">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold">Net Sales</h2>
@@ -281,7 +280,6 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-        {/* Engagement donut */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border flex flex-col">
           <h2 className="font-semibold mb-2">Customer Engagement</h2>
           <div className="h-60 flex items-center justify-center">
@@ -297,7 +295,6 @@ export default function Dashboard() {
         </div>
       </div>
       <div className="grid xl:grid-cols-3 gap-6">
-        {/* Upcoming events */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold text-sm">Upcoming Events</h2>
@@ -337,7 +334,6 @@ export default function Dashboard() {
             )}
           </ul>
         </div>
-        {/* Latest Event seat map */}
         <div className="xl:col-span-2 bg-white rounded-2xl p-5 shadow-sm border flex flex-col">
           <h2 className="font-semibold mb-3">Latest Event</h2>
           {stats.recentEvents && stats.recentEvents.length ? (
