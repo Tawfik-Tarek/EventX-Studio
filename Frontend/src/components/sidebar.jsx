@@ -24,7 +24,7 @@ import { useNotifications } from "@/contexts/NotificationContext";
 
 export default function Sidebar() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { unread } = useNotifications();
   const [openSections, setOpenSections] = useState({
     "Main Navigation": true,
@@ -41,7 +41,7 @@ export default function Sidebar() {
   const routes = {
     Dashboard: "/",
     "Manage Events": "/events",
-    "Booking & Tickets": "/events",
+    "Booking & Tickets": "/my-tickets",
     "Attendee Insights": "/attendees",
     "Analytics & Reports": "/analytics",
     "Contact Support": "/support",
@@ -63,16 +63,22 @@ export default function Sidebar() {
     }
   };
 
+  const isAdmin = user && user.role === "admin";
+
   const sections = [
     {
       title: "Main Navigation",
       items: [
-        { name: "Dashboard", icon: <LayoutDashboard size={18} /> },
+        isAdmin && { name: "Dashboard", icon: <LayoutDashboard size={18} /> },
         { name: "Manage Events", icon: <Calendar size={18} /> },
         { name: "Booking & Tickets", icon: <Ticket size={18} /> },
-        { name: "Attendee Insights", icon: <Users size={18} /> },
-        { name: "Analytics & Reports", icon: <BarChart3 size={18} /> },
-      ],
+        ...(isAdmin
+          ? [{ name: "Attendee Insights", icon: <Users size={18} /> }]
+          : []),
+        ...(isAdmin
+          ? [{ name: "Analytics & Reports", icon: <BarChart3 size={18} /> }]
+          : []),
+      ].filter(Boolean),
     },
     {
       title: "Support & Management",
@@ -85,18 +91,24 @@ export default function Sidebar() {
     {
       title: "Additional Features",
       items: [
-        { name: "Marketing", icon: <Megaphone size={18} /> },
-        { name: "Event Categories", icon: <Layers size={18} /> },
-      ],
+        ...(isAdmin
+          ? [{ name: "Marketing", icon: <Megaphone size={18} /> }]
+          : []),
+        ...(isAdmin
+          ? [{ name: "Event Categories", icon: <Layers size={18} /> }]
+          : []),
+      ].filter(Boolean),
     },
     {
       title: "Account Management",
       items: [
-        { name: "Manage Users", icon: <UserCog size={18} /> },
+        ...(isAdmin
+          ? [{ name: "Manage Users", icon: <UserCog size={18} /> }]
+          : []),
         { name: "Logout", icon: <LogOut size={18} /> },
-      ],
+      ].filter(Boolean),
     },
-  ];
+  ].filter((section) => section.items.length > 0);
 
   return (
     <aside className="w-64 bg-black text-white min-h-screen flex flex-col">
@@ -112,19 +124,21 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <button
-        onClick={() => setShowCreateModal(true)}
-        className="bg-[#282828] text-white px-4 py-2 cursor-pointer rounded-md flex items-center gap-2.5 mx-4 my-2"
-      >
-        <PlusCircle
-          size={36}
-          className="bg-[#C1FF72]"
-        />
-        <div>
-          <h3>Add Quick Event</h3>
-          <p className="text-start">Events</p>
-        </div>
-      </button>
+      {isAdmin && (
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="bg-[#282828] text-white px-4 py-2 cursor-pointer rounded-md flex items-center gap-2.5 mx-4 my-2"
+        >
+          <PlusCircle
+            size={36}
+            className="bg-[#C1FF72]"
+          />
+          <div>
+            <h3>Add Quick Event</h3>
+            <p className="text-start">Events</p>
+          </div>
+        </button>
+      )}
 
       <nav className="flex-1 overflow-y-auto px-2">
         {sections.map((section) => (
