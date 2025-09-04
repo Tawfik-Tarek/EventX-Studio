@@ -13,8 +13,12 @@ async function createNotification({
   data,
 }) {
   const doc = await Notification.create({ user, title, message, type, data });
+  console.log(
+    `Notification created: ${title} for user: ${user || "broadcast"}`
+  );
   // Emit event for SSE listeners (per user + broadcast channel)
   notificationEmitter.emit("notify", { notification: doc });
+  console.log("Notification event emitted");
   return doc;
 }
 
@@ -122,8 +126,16 @@ function stream(req, res) {
   const onNotify = ({ notification }) => {
     // Send if notification targeted to this user or broadcast
     if (!notification.user || notification.user.toString() === userId) {
+      console.log(
+        `Sending notification to user ${userId}: ${notification.title}`
+      );
+      // Add isRead property for consistency with listNotifications
+      const notificationWithRead = {
+        ...notification.toObject(),
+        isRead: false, // New notifications are always unread
+      };
       res.write(`event: notification\n`);
-      res.write(`data: ${JSON.stringify(notification)}\n\n`);
+      res.write(`data: ${JSON.stringify(notificationWithRead)}\n\n`);
     }
   };
 

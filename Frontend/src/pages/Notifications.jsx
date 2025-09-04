@@ -10,6 +10,8 @@ export default function NotificationsPage() {
     fetchMore,
     markRead,
     markAllRead,
+    refreshNotifications,
+    hasMorePages,
   } = useNotifications();
 
   useEffect(() => {
@@ -24,6 +26,13 @@ export default function NotificationsPage() {
           <p className="text-xs text-gray-500">Recent updates & activity</p>
         </div>
         <div className="flex gap-2 text-xs">
+          <button
+            onClick={refreshNotifications}
+            className="px-3 py-1 border rounded-md hover:bg-gray-50"
+            disabled={loading}
+          >
+            {loading ? "Refreshing..." : "Refresh"}
+          </button>
           <button
             onClick={markAllRead}
             className="px-3 py-1 border rounded-md hover:bg-gray-50"
@@ -79,9 +88,18 @@ export default function NotificationsPage() {
       <div className="text-center">
         <button
           onClick={fetchMore}
-          className="text-xs underline text-gray-600 hover:text-black"
+          disabled={!hasMorePages() || loading}
+          className={`text-xs underline ${
+            !hasMorePages() || loading
+              ? "text-gray-400 cursor-not-allowed"
+              : "text-gray-600 hover:text-black"
+          }`}
         >
-          Load more
+          {loading
+            ? "Loading..."
+            : hasMorePages()
+            ? "Load more"
+            : "No more notifications"}
         </button>
       </div>
     </div>
