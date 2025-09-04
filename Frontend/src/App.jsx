@@ -13,6 +13,7 @@ import { PublicRoute, ProtectedLayout } from "@/components/RouteGuards";
 import Dashboard from "@/pages/Dashboard";
 import NotificationsPage from "@/pages/Notifications";
 import AttendeeInsights from "@/pages/AttendeeInsights";
+import MyTickets from "@/pages/MyTickets";
 
 function App() {
   return (
@@ -93,6 +94,15 @@ function App() {
                 <Layout>
                   <EventDetails />
                 </Layout>
+              }
+            />
+
+            <Route
+              path="/my-tickets"
+              element={
+                <ProtectedLayout>
+                  <MyTickets />
+                </ProtectedLayout>
               }
             />
 
