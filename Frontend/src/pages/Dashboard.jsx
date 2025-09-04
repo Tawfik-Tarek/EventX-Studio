@@ -55,6 +55,8 @@ export default function Dashboard() {
         throw new Error(`Per-event failed (${perEventRes.status})`);
       const dashData = await dashRes.json();
       const perEventData = await perEventRes.json();
+      console.log("Dashboard data:", { dashData, perEventData });
+
       setStats(dashData);
       setPerEvent(perEventData.events || []);
     } catch (e) {
@@ -75,6 +77,8 @@ export default function Dashboard() {
       });
       if (!res.ok) throw new Error("Revenue fetch failed");
       const data = await res.json();
+      console.log("Revenue data:", data);
+      
       setRevenuePoints(data.points || []);
     } catch (e) {
       console.warn(e);
