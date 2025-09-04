@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { API_BASE_URL } from "@/config/api";
-import { useAuth } from "@/contexts/AuthContext";
 import formatDate from "@/lib/format-date";
+import { toast } from "react-toastify";
 
 export default function MyTickets() {
   const [tickets, setTickets] = useState([]);
@@ -45,7 +45,7 @@ export default function MyTickets() {
         )
       );
     } catch (e) {
-      alert("Error cancelling ticket: " + e.message);
+      toast.error("Error cancelling ticket: " + e.message);
     }
   };
 
