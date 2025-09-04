@@ -16,6 +16,7 @@ import { API_BASE_URL } from "@/config/api";
 import Metric from "@/components/Metric";
 import { PageLoading } from "@/components/LoadingSpinner";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "react-toastify";
 
 ChartJS.register(
   CategoryScale,
@@ -366,7 +367,7 @@ export default function Dashboard() {
               a.remove();
               setTimeout(() => URL.revokeObjectURL(url), 2000);
             } catch (e) {
-              alert(e.message);
+              toast.error(e.message);
             }
           }}
           className="text-xs underline text-gray-600 hover:text-black"

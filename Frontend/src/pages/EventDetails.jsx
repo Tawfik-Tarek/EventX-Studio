@@ -19,6 +19,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { toast } from "react-toastify";
 
 export default function EventDetails() {
   const { id } = useParams();
@@ -69,7 +70,7 @@ export default function EventDetails() {
   const handleBookTicket = async () => {
     if (!selectedSeat || !cardLast4) return;
     if (isEventCreator) {
-      alert(
+      toast.info(
         "As the event organizer, you cannot book tickets for your own event."
       );
       return;
@@ -92,13 +93,13 @@ export default function EventDetails() {
       });
       if (!res.ok) throw new Error("Booking failed");
       const data = await res.json();
-      alert("Ticket booked successfully!");
+      toast.success("Ticket booked successfully!");
       setShowBookingModal(false);
       setSelectedSeat(null);
       setCardLast4("");
       window.location.reload();
     } catch (e) {
-      alert("Error booking ticket: " + e.message);
+      toast.error("Error booking ticket: " + e.message);
     } finally {
       setBookingLoading(false);
     }
