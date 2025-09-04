@@ -6,6 +6,7 @@ const authRoutes = require("./routes/authRoutes");
 const ticketsRoutes = require("./routes/ticketRoutes");
 const eventsRoutes = require("./routes/eventRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 // Load environment variables
 dotenv.config();
@@ -25,6 +26,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/events", eventsRoutes);
 app.use("/api/tickets", ticketsRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Root endpoint
 app.get("/", (_, res) => {

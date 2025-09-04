@@ -1,6 +1,7 @@
 const Ticket = require("../models/Ticket");
 const Event = require("../models/Event");
 const { generateQR } = require("../utils/qrGenerator");
+const { createNotification } = require("./notificationController");
 const jwt = require("jsonwebtoken");
 
 // Helper to ensure seat is valid and available using seatMap
@@ -57,6 +58,14 @@ const bookTicket = async (req, res) => {
       qrCode,
     });
 
+    createNotification({
+      user: req.user._id,
+      title: "Ticket Booked",
+      message: `Seat ${seatNumber} booked for event ${event.title}`,
+      type: "ticket",
+      data: { ticketId: ticket._id, eventId },
+    }).catch(() => {});
+
     res.status(201).json({ message: "Ticket booked successfully", ticket });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
@@ -106,6 +115,13 @@ const checkoutTicket = async (req, res) => {
       seatNumber,
       qrCode,
     });
+    createNotification({
+      user: req.user._id,
+      title: "Checkout Successful",
+      message: `Seat ${seatNumber} booked for event ${event.title}`,
+      type: "ticket",
+      data: { ticketId: ticket._id, eventId },
+    }).catch(() => {});
     res.status(201).json({ message: "Checkout successful", ticket });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
@@ -138,7 +154,10 @@ const getEventTickets = async (req, res) => {
 
 const cancelTicket = async (req, res) => {
   try {
-    const ticket = await Ticket.findById(req.params.id);
+    const ticket = await Ticket.findById(req.params.id).populate(
+      "eventId",
+      "title"
+    );
 
     if (!ticket) {
       return res.status(404).json({ message: "Ticket not found" });
@@ -166,6 +185,13 @@ const cancelTicket = async (req, res) => {
     );
 
     res.json({ message: "Ticket cancelled successfully" });
+    createNotification({
+      user: req.user._id,
+      title: "Ticket Cancelled",
+      message: `Your ticket (seat ${ticket.seatNumber}) for event "${ticket.eventId.title}" was cancelled`,
+      type: "ticket",
+      data: { ticketId: ticket._id, eventId: ticket.eventId },
+    }).catch(() => {});
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -173,7 +199,10 @@ const cancelTicket = async (req, res) => {
 
 const useTicket = async (req, res) => {
   try {
-    const ticket = await Ticket.findById(req.params.id);
+    const ticket = await Ticket.findById(req.params.id).populate(
+      "eventId",
+      "title"
+    );
     if (!ticket) return res.status(404).json({ message: "Ticket not found" });
     if (ticket.status !== "booked")
       return res.status(400).json({ message: "Ticket cannot be used" });
@@ -181,6 +210,13 @@ const useTicket = async (req, res) => {
     ticket.usedDate = new Date();
     await ticket.save();
     res.json({ message: "Ticket used successfully" });
+    createNotification({
+      user: ticket.userId,
+      title: "Ticket Used",
+      message: `Ticket for seat ${ticket.seatNumber} marked as used for event "${ticket.eventId.title}"`,
+      type: "ticket",
+      data: { ticketId: ticket._id, eventId: ticket.eventId },
+    }).catch(() => {});
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -197,7 +233,11 @@ const validateQRAndUse = async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired QR" });
     }
     const { e: eventId, s: seatNumber, u: userId } = payload;
-    const ticket = await Ticket.findOne({ eventId, seatNumber, userId });
+    const ticket = await Ticket.findOne({
+      eventId,
+      seatNumber,
+      userId,
+    }).populate("eventId", "title");
     if (!ticket) return res.status(404).json({ message: "Ticket not found" });
     if (ticket.status !== "booked")
       return res.status(400).json({ message: "Ticket already processed" });
@@ -205,6 +245,13 @@ const validateQRAndUse = async (req, res) => {
     ticket.usedDate = new Date();
     await ticket.save();
     res.json({ message: "QR validated", ticket });
+    createNotification({
+      user: ticket.userId,
+      title: "Ticket Used",
+      message: `Ticket for seat ${ticket.seatNumber} scanned and used for event "${ticket.eventId.title}"`,
+      type: "ticket",
+      data: { ticketId: ticket._id, eventId: ticket.eventId },
+    }).catch(() => {});
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

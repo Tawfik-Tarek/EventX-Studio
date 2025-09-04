@@ -20,10 +20,12 @@ import {
 import Logo from "../assets/logo.svg";
 import EventFormModal from "./EventFormModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 export default function Sidebar() {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { unread } = useNotifications();
   const [openSections, setOpenSections] = useState({
     "Main Navigation": true,
     "Support & Management": true,
@@ -145,15 +147,27 @@ export default function Sidebar() {
 
             {openSections[section.title] && (
               <ul className="mt-1 pl-4 space-y-1">
-                {section.items.map((item) => (
-                  <li
-                    key={item.name}
-                    onClick={() => handleItemClick(item.name)}
-                    className="flex items-center gap-2 text-sm text-gray-300 hover:text-white cursor-pointer py-1"
-                  >
-                    {item.icon} {item.name}
-                  </li>
-                ))}
+                {section.items.map((item) => {
+                  const content = (
+                    <>
+                      {item.icon} {item.name}
+                      {item.name === "Notifications" && unread > 0 && (
+                        <span className="ml-auto bg-red-500 text-[10px] px-1.5 py-0.5 rounded-full text-white">
+                          {unread}
+                        </span>
+                      )}
+                    </>
+                  );
+                  return (
+                    <li
+                      key={item.name}
+                      onClick={() => handleItemClick(item.name)}
+                      className="flex items-center gap-2 text-sm text-gray-300 hover:text-white cursor-pointer py-1"
+                    >
+                      {content}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
