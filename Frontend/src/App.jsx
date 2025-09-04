@@ -54,17 +54,17 @@ function App() {
           <Route
             path="/attendees"
             element={
-              <Layout>
+              <ProtectedLayout>
                 <AttendeeInsights />
-              </Layout>
+              </ProtectedLayout>
             }
           />
           <Route
             path="/events/:id/attendees"
             element={
-              <Layout>
+              <ProtectedLayout>
                 <AttendeeInsights singleEvent />
-              </Layout>
+              </ProtectedLayout>
             }
           />
 
