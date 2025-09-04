@@ -11,15 +11,14 @@ const notificationSchema = new mongoose.Schema(
       enum: ["info", "event", "ticket", "system"],
       default: "info",
     },
-    data: { type: Object }, // arbitrary payload (e.g., {eventId, ticketId})
-    read: { type: Boolean, default: false },
-    readAt: { type: Date },
-    scheduledFor: { type: Date }, // optional future scheduling
+    data: { type: Object },
+    readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // users who have read this notification
+    scheduledFor: { type: Date },
   },
   { timestamps: true }
 );
 
-notificationSchema.index({ user: 1, read: 1, createdAt: -1 });
+notificationSchema.index({ user: 1, createdAt: -1 });
 notificationSchema.index({ scheduledFor: 1 });
 
 module.exports = mongoose.model("Notification", notificationSchema);

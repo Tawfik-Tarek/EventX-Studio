@@ -32,8 +32,7 @@ export function NotificationProvider({ children }) {
       if (res.ok) {
         setUnread(data.unread);
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   };
 
   const fetchPage = async (page = 1) => {
@@ -104,7 +103,7 @@ export function NotificationProvider({ children }) {
       console.log("Received notification:", evt.data);
       try {
         const n = JSON.parse(evt.data);
-        setNotifications((prev) => [n, ...prev]);
+        setNotifications((prev) => [{ ...n, isRead: false }, ...prev]);
         fetchUnreadCount();
       } catch (error) {
         console.error("Error parsing notification:", error);
@@ -132,7 +131,7 @@ export function NotificationProvider({ children }) {
       });
       if (res.ok) {
         setNotifications((prev) =>
-          prev.map((n) => (n._id === id ? { ...n, read: true } : n))
+          prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
         );
         fetchUnreadCount();
       }
@@ -147,7 +146,7 @@ export function NotificationProvider({ children }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
-        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
         fetchUnreadCount();
       }
     } catch {}

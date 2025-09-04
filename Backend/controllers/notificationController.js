@@ -25,13 +25,20 @@ async function listNotifications(req, res) {
     const filter = {
       $or: [{ user: req.user._id }, { user: null }],
     };
-    if (unread === "true") filter.read = false;
+    if (unread === "true") {
+      filter.readBy = { $ne: req.user._id };
+    }
     const notifications = await Notification.find(filter)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(Number(limit));
     const total = await Notification.countDocuments(filter);
-    res.json({ data: notifications, total, page: Number(page) });
+    // Add isRead to each notification
+    const notificationsWithRead = notifications.map((n) => ({
+      ...n.toObject(),
+      isRead: n.readBy.includes(req.user._id),
+    }));
+    res.json({ data: notificationsWithRead, total, page: Number(page) });
   } catch (e) {
     res.status(500).json({ message: "Server error", error: e.message });
   }
@@ -45,12 +52,14 @@ async function markRead(req, res) {
       $or: [{ user: req.user._id }, { user: null }],
     });
     if (!n) return res.status(404).json({ message: "Notification not found" });
-    if (!n.read) {
-      n.read = true;
-      n.readAt = new Date();
+    if (!n.readBy.includes(req.user._id)) {
+      n.readBy.push(req.user._id);
       await n.save();
     }
-    res.json({ message: "Marked read", notification: n });
+    res.json({
+      message: "Marked read",
+      notification: { ...n.toObject(), isRead: true },
+    });
   } catch (e) {
     res.status(500).json({ message: "Server error", error: e.message });
   }
@@ -62,9 +71,9 @@ async function markAllRead(req, res) {
     await Notification.updateMany(
       {
         $or: [{ user: req.user._id }, { user: null }],
-        read: false,
+        readBy: { $ne: req.user._id },
       },
-      { $set: { read: true, readAt: new Date() } }
+      { $push: { readBy: req.user._id } }
     );
     res.json({ message: "All read" });
   } catch (e) {
@@ -77,7 +86,7 @@ async function getUnreadCount(req, res) {
   try {
     const count = await Notification.countDocuments({
       $or: [{ user: req.user._id }, { user: null }],
-      read: false,
+      readBy: { $ne: req.user._id },
     });
     res.json({ unread: count });
   } catch (e) {
