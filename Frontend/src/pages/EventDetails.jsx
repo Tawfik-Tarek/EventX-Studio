@@ -68,6 +68,12 @@ export default function EventDetails() {
 
   const handleBookTicket = async () => {
     if (!selectedSeat || !cardLast4) return;
+    if (isEventCreator) {
+      alert(
+        "As the event organizer, you cannot book tickets for your own event."
+      );
+      return;
+    }
     setBookingLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -97,6 +103,9 @@ export default function EventDetails() {
       setBookingLoading(false);
     }
   };
+
+  const isEventCreator =
+    user && user.role === "admin" && user._id === event.creatorId;
 
   const totalGridSeats = Math.min(80, event.totalSeats);
   const seatStatuses = event.seatMap
@@ -169,7 +178,9 @@ export default function EventDetails() {
                 Seat Allocation
               </h3>
               <p className="text-sm text-gray-600 text-center mb-4">
-                Click on a seat to book your ticket
+                {isEventCreator
+                  ? "As the event organizer, you cannot book tickets for your own event"
+                  : "Click on a seat to book your ticket"}
               </p>
               <div className="flex justify-center gap-4 mb-4 text-sm">
                 <Legend
@@ -182,7 +193,7 @@ export default function EventDetails() {
                 />
                 <Legend
                   color="bg-gray-300"
-                  label="Available"
+                  label={isEventCreator ? "Unavailable" : "Available"}
                 />
               </div>
               <div className="grid grid-cols-10 gap-2 place-items-center">
@@ -190,7 +201,7 @@ export default function EventDetails() {
                   <button
                     key={i}
                     onClick={() => {
-                      if (s === "available") {
+                      if (s === "available" && !isEventCreator) {
                         setSelectedSeat(i + 1);
                         setCardLast4("");
                         setShowBookingModal(true);
@@ -201,9 +212,11 @@ export default function EventDetails() {
                         ? "bg-[#8B2CF5] cursor-not-allowed"
                         : s === "blocked"
                         ? "bg-gray-500 cursor-not-allowed"
+                        : isEventCreator
+                        ? "bg-gray-400 cursor-not-allowed"
                         : "bg-gray-300 hover:bg-blue-300 cursor-pointer"
                     }`}
-                    disabled={s !== "available"}
+                    disabled={s !== "available" || isEventCreator}
                   />
                 ))}
               </div>
@@ -257,7 +270,7 @@ export default function EventDetails() {
                 </button>
               </>
             )}
-            {user && (
+            {user && !isEventCreator && (
               <>
                 <button
                   onClick={() => setShowBookingModal(true)}
