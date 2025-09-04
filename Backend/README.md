@@ -169,7 +169,7 @@ Authorization: Bearer <your-jwt-token>
   userId: ObjectId (ref: 'User', required),
   seatNumber: Number (required),
   qrCode: String (required), // Base64 encoded QR code
-  status: String (enum: ['booked', 'used', 'cancelled']),
+  status: String (enum: ['booked', 'used']),
   bookingDate: Date,
   usedDate: Date
 }
@@ -199,13 +199,10 @@ Authorization: Bearer <your-jwt-token>
 
 ### Ticket Routes (`/api/tickets`)
 
-| Method | Endpoint      | Description                 | Access          |
-| ------ | ------------- | --------------------------- | --------------- |
-| POST   | `/checkout`   | Simulated payment + booking | Authenticated   |
-| GET    | `/my-tickets` | Get user's tickets          | Authenticated   |
-| PUT    | `/:id/cancel` | Cancel ticket               | Authenticated\* |
-
-\*Users can only cancel their own tickets
+| Method | Endpoint      | Description                 | Access        |
+| ------ | ------------- | --------------------------- | ------------- |
+| POST   | `/checkout`   | Simulated payment + booking | Authenticated |
+| GET    | `/my-tickets` | Get user's tickets          | Authenticated |
 
 ### Analytics Routes (`/api/analytics`)
 

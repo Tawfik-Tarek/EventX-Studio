@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-// Notification schema supports per-user notifications and broadcast (user null + audience filter in future)
 const notificationSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // optional; null means broadcast to all users

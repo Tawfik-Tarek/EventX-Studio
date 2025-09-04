@@ -10,7 +10,6 @@ const {
 const { auth, adminAuth } = require("../middleware/auth");
 const Joi = require("joi");
 
-// Lightweight inline validation for revenue endpoint
 const revenueQueryValidator = (req, res, next) => {
   const schema = Joi.object({
     from: Joi.date().iso(),

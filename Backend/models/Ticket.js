@@ -21,7 +21,7 @@ const ticketSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["booked", "used", "cancelled"],
+    enum: ["booked", "used"],
     default: "booked",
   },
   bookingDate: {
@@ -33,7 +33,6 @@ const ticketSchema = new mongoose.Schema({
   },
 });
 
-// Compound index to ensure unique seat per event
 ticketSchema.index({ eventId: 1, seatNumber: 1 }, { unique: true });
 
 module.exports = mongoose.model("Ticket", ticketSchema);

@@ -106,7 +106,6 @@ const createEvent = async (req, res) => {
       "createdBy",
       "name"
     );
-    // Broadcast notification for new event
     createNotification({
       user: null,
       title: "New Event Created",
@@ -130,7 +129,6 @@ const updateEvent = async (req, res) => {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    // Check if user is the creator or admin
     if (
       event.createdBy.toString() !== req.user._id.toString() &&
       req.user.role !== "admin"
@@ -181,7 +179,6 @@ const deleteEvent = async (req, res) => {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    // Check if user is the creator or admin
     if (
       event.createdBy.toString() !== req.user._id.toString() &&
       req.user.role !== "admin"

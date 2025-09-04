@@ -64,7 +64,6 @@ export function NotificationProvider({ children }) {
           setNotifications((prev) => [...prev, ...newNotifications]);
         }
         pageRef.current = page;
-        // Only fetch unread count on first page to avoid unnecessary calls
         if (page === 1) {
           fetchUnreadCount();
         }
@@ -95,7 +94,6 @@ export function NotificationProvider({ children }) {
       } catch {}
     });
     es.onerror = () => {
-      // try reconnect after delay
       es.close();
       esRef.current = null;
       setTimeout(connectStream, 5000);
@@ -126,9 +124,7 @@ export function NotificationProvider({ children }) {
       try {
         const n = JSON.parse(evt.data);
         console.log("Parsed notification:", n);
-        // Add the notification to the top of the list
         setNotifications((prev) => [{ ...n, isRead: false }, ...prev]);
-        // Update unread count
         setUnread((prev) => prev + 1);
       } catch (error) {
         console.error("Error parsing notification:", error);
@@ -141,9 +137,7 @@ export function NotificationProvider({ children }) {
       setSseConnected(false);
       es.close();
       esRef.current = null;
-      // Start polling as fallback
       startPolling();
-      // Try to reconnect after delay
       setTimeout(connectStreamWithQuery, 5000);
     });
 
@@ -163,7 +157,6 @@ export function NotificationProvider({ children }) {
         setNotifications((prev) =>
           prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
         );
-        // Decrement unread count if this notification was unread
         setUnread((prev) => Math.max(0, prev - 1));
       }
     } catch (e) {
@@ -188,25 +181,23 @@ export function NotificationProvider({ children }) {
   };
 
   const startPolling = () => {
-    if (pollIntervalRef.current) return; // Already polling
+    if (pollIntervalRef.current) return;
     console.log("Starting notification polling as SSE fallback");
     pollIntervalRef.current = setInterval(async () => {
       if (!token) return;
       try {
-        // Check for new notifications by comparing current count with server
         const res = await fetch(`${API_BASE_URL}/notifications/unread`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
         if (res.ok && data.unread > unread) {
-          // There are new notifications, refresh the list
           console.log("New notifications detected via polling, refreshing...");
           await fetchPage(1);
         }
       } catch (e) {
         console.warn("Polling failed:", e);
       }
-    }, 30000); // Poll every 30 seconds
+    }, 30000);
   };
 
   const stopPolling = () => {
@@ -223,9 +214,7 @@ export function NotificationProvider({ children }) {
   useEffect(() => {
     if (!authLoading && user) {
       fetchPage(1);
-      // Try query param variant (backend must accept it)
       connectStreamWithQuery();
-      // Start polling as backup after 10 seconds if SSE hasn't connected
       setTimeout(() => {
         if (!sseConnected) {
           startPolling();
@@ -236,10 +225,8 @@ export function NotificationProvider({ children }) {
       if (esRef.current) esRef.current.close();
       stopPolling();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading]);
 
-  // Separate effect to fetch unread count after user is loaded
   useEffect(() => {
     if (!authLoading && user && token) {
       fetchUnreadCount();

@@ -5,7 +5,6 @@ import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Profile from "@/pages/Profile";
 import NotFound from "@/pages/NotFound";
-import "./App.css";
 import Layout from "./components/Layout";
 import EventDetails from "@/pages/EventDetails";
 import Events from "@/pages/Events";
